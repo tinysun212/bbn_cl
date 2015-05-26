@@ -1,0 +1,610 @@
+#                                 ********
+#
+# Copyright 1992 by BBN Systems and Technologies, A division of Bolt,
+# Beranek and Newman Inc.
+#
+# Permission to use, copy, modify and distribute this software and its
+# documentation is hereby granted without fee, provided that the above
+# copyright notice and this permission appear in all copies and in
+# supporting documentation, and that the name Bolt, Beranek and Newman
+# Inc. not be used in advertising or publicity pertaining to distribution
+# of the software without specific, written prior permission.  In
+# addition, BBN makes no respresentation about the suitability of this
+# software for any purposes.  It is provided "AS IS" without express or
+# implied warranties including (but not limited to) all implied warranties
+# of merchantability and fitness.  In no event shall BBN be liable for any
+# special, indirect or consequential damages whatsoever resulting from
+# loss of use, data or profits, whether in an action of contract,
+# negligence or other tortuous action, arising out of or in connection
+# with the use or performance of this software.
+# 
+#                                 ********
+# 
+##	$Header: Makefile,v 9.45 87/06/15 18:29:21 GMT kwh Exp $
+#
+#
+###	MACHINE DEPENDENT PART	###
+#
+#
+#	butterfly version
+#
+#
+#
+
+BLISP = /usr/blisp
+BFLY = /usr/butterfly
+VER = Chrys392/BF_PLUS
+LDIR = /usr/blisp/scheme102/bbn-runtime
+
+VERPATH = $(BFLY)/chrys/$(VER)
+
+CC = CHRYSALIS=$(VERPATH) $(BFLY)/bin/bcc
+NM = $(BFLY)/bin/nm68
+SPLITSYMS = $(BFLY)/bin/splitsyms
+STRIP = $(BFLY)/bin/stripbld
+ECHO = echo
+
+#	Remove "-Dsun3" if you are running an older version of the operating system.
+#	Remove "-f68881" if your machine doesn't have a 68881 coprocessor.
+
+MACBFLY = -Dbutterfly -DBYTE_INVERSION -DPARALLEL_PROCESSOR -Uunix -Dmc68000 \
+		 -I. -I$(BFLY)/chrys/$(VER)/include -DBF_PLUS -Usun -X105
+
+#
+# *** NOTE ***
+# These are the main lines to change.
+# They reflect the machine and operating system type.
+#
+
+# The actual machine we are running on.
+
+MAC = $(MACBFLY)
+
+# The math library in use.  Usually -lm.
+
+MATH_LIB = 
+
+# The terminal description library in use.  Usually -ltermcap.
+
+TERM_LIB = 
+
+# Extra libraries needed for compatibility.
+
+XTRA_LIB = $(BFLY)/chrys/$(VER)/lib/libcs.a \
+	   $(BFLY)/chrys/$(VER)/lib/libtools.a \
+	   $(BFLY)/chrys/$(VER)/lib/libm.a \
+	   $(BFLY)/lib/libgh.a
+
+
+# Compiled code interface files.
+# The defaults are just stubs.
+
+CSRC  = cmp68021.m4 cmpbfly.m4
+CFILE = cmp68021.o cmpbfly.o
+D_CFILE = cmp68021.o cmpbfly.o
+F_CFILE = cmp68021.o cmpbfly.o
+CFLAG = -DCMPGCFILE=\"cmp68kgc.h\"	# <nothing>
+GC_HEAD_FILES= gccode.h
+
+# Additional primitives required by the system
+
+# These primitive files are for the default version of scheme
+
+SYS_PRIM_SOURCES = unixprim.c # fhooks.c xdebug.c
+SYS_PRIM_OBJECTS = unixprim.oo # fhooks.oo xdebug.oo
+
+# These are for dscheme, a debugging version.  You don't want to use it.
+
+D_SYS_PRIM_SOURCES = unixprim.c fhooks.c xdebug.c
+D_SYS_PRIM_OBJECTS = unixprim.do fhooks.do xdebug.do
+
+# These are for fscheme, a version with futures, a multiprocessing extension.
+
+F_SYS_PRIM_SOURCES = fhooks.c future.c ffuture.c bf-interco.c butterfly.c \
+	xdebug.c bf-io.c bf-meter.c bf-gc.c bf-prims.c
+F_SYS_PRIM_OBJECTS = fhooks.fo future.fo ffuture.fo bf-interco.fo butterfly.fo \
+	xdebug.fo bf-io.fo bf-meter.fo bf-gc.fo bf-prims.fo
+#
+#
+###	INSTALLATION DEPENDENT PART	###
+#
+#
+
+# Source directory and default runtime system image
+
+BAND = -DDEFAULT_BAND_NAME=\"/usr/blisp/scheme102/bbn-runtime/bf-lisp.band\"
+SPATH = -DSCHEME_SOURCES_PATH=\"/usr/blisp/scheme102/bbn-runtime/\"
+
+# User defined primitives.  Add/"uncomment" files as appropriate.
+
+USER_PRIM_SOURCES = parallel.c codeman.c  cl-arith.c cl-fileio.c cl-symbol.c \
+			cl-time.c gvector.c header.c ivector.c \
+			stringmisc.c cl-pkgs.c
+USER_PRIM_OBJECTS = parallel.oo codeman.oo
+D_USER_PRIM_OBJECTS = parallel.do codeman.do
+F_USER_PRIM_OBJECTS = parallel.fo codeman.fo cl-arith.fo cl-fileio.fo cl-symbol.fo \
+			cl-time.fo gvector.fo header.fo ivector.fo \
+			stringmisc.fo cl-pkgs.fo
+USER_LIB = # extra libraries needed by user primitives
+
+# Extra flags.  The stepper does not work, at present.
+
+EFLAG = -DLDIR=\"$(LDIR)\" # -DCOMPILE_STEPPER
+
+#
+#
+###	COMMON PART	###
+#
+#
+#
+
+#
+# *** Important: ***
+# You should not need to change anything below this point.
+# All the machine & os/installation dependencies are above.
+# 
+
+LIB = $(USER_LIB) $(MATH_LIB) $(TERM_LIB) $(XTRA_LIB)
+
+BASE_PRIM_SOURCES = $(SYS_PRIM_SOURCES) $(USER_PRIM_SOURCES)
+BASE_PRIM_OBJECTS = $(SYS_PRIM_OBJECTS) $(USER_PRIM_OBJECTS)
+
+# These primitive files are for the default version of scheme
+
+PRIM_SOURCES = $(BASE_PRIM_SOURCES)
+PRIM_OBJECTS = $(BASE_PRIM_OBJECTS) usrdef.o
+
+# These are for dscheme, a debugging version.  You don't want to use it.
+
+D_PRIM_SOURCES = $(D_SYS_PRIM_SOURCES) $(USER_PRIM_SOURCES)
+D_PRIM_OBJECTS = $(D_SYS_PRIM_OBJECTS) $(D_USER_PRIM_OBJECTS) dusrdef.o
+
+# These are for fscheme, a version with futures, a multiprocessing extension.
+
+F_PRIM_SOURCES = $(F_SYS_PRIM_SOURCES) $(USER_PRIM_SOURCES)
+F_PRIM_OBJECTS = $(F_SYS_PRIM_OBJECTS) $(F_USER_PRIM_OBJECTS) fusrdef.o
+
+# These extra files are for 6001.
+
+6001_SOURCES = $(BASE_PRIM_SOURCES) Sgraph.c
+6001_OBJECTS = $(BASE_PRIM_OBJECTS) Sgraph.oo usr6001.oo
+6001_LIB = -ltermcap -ldd300h -lsb1 -lsb2 $(MATH_LIB)
+
+# These extra files are for 6003.
+
+6003_SOURCES = $(BASE_PRIM_SOURCES) Sgraph.c Sgraph-xt.c fft.c array.c image.c Sgraph-ar.c
+6003_OBJECTS = $(BASE_PRIM_OBJECTS) Sgraph.oo Sgraph-xt.oo fft.oo array.oo image.oo Sgraph-ar.oo usr6003.oo
+6003_LIB = -ltermcap -ldd300h -lddhil -lsb1 -lsb2 $(MATH_LIB)
+
+# These extra files are for KWH's development SCHEME
+
+KWH_SOURCES = $(BASE_PRIM_SOURCES) bitops.c Sgraph.c Sgraph-xt.c fft.c array.c image.c Sgraph-ar.c
+KWH_OBJECTS = $(BASE_PRIM_OBJECTS) bitops.oo Sgraph.oo Sgraph-xt.oo fft.oo array.oo image.oo Sgraph-ar.oo usrKWH.oo
+KWH_LIB = -ltermcap -ldd300h -lddhil -lsb1 -lsb2 $(MATH_LIB)
+
+# Default switches
+
+SWITCHES = $(MAC) $(BAND) $(SPATH) $(EFLAG) $(CFLAG)
+PSWITCHES = -DCOMPILE_HISTORY $(SWITCHES)
+
+# Size of the built-in primitive table.
+
+NBUILT = 0x1b0
+
+SRC0= interpret.c $(CSRC)
+SRC1= fixnum.c hooks.c hunk.c list.c \
+      step.c string.c vector.c sysprim.c daemon.c
+SRC2= prim.c random.c primutl.c extern.c
+SRC3= lookup.c debug.c intern.c
+SRC4= fasdump.c fasload.c
+SRC5= memmag.c gcloop.c purify.c purutl.c comutl.c
+SRC6= bignum.c flonum.c generic.c utils.c
+SRC7= storage.c
+SRC8= character.c fileio.c stringprim.c ttyio.c
+SRC9= boot.c
+SRC10= syntax.c
+SRC11= bitstr.c
+
+SRC4bch = bchdmp.c fasload.c
+SRC5bch = bchmmg.c bchgcl.c bchpur.c purutl.c
+
+SOURCES = $(SRC0) $(SRC1) $(SRC2) $(SRC3) $(SRC4) \
+	  $(SRC5) $(SRC6) $(SRC7) $(SRC8) $(SRC9) \
+	  $(SRC10) $(SRC11)
+
+OBJ0= interpret.oo
+OBJ1= fixnum.oo hooks.oo hunk.oo list.oo \
+      step.oo string.oo vector.oo sysprim.oo daemon.oo
+OBJ2= prim.oo random.oo primutl.oo extern.oo
+OBJ3= lookup.oo debug.oo intern.oo
+OBJ4= fasdump.oo fasload.oo
+OBJ5= memmag.oo gcloop.oo purify.oo purutl.oo comutl.oo
+OBJ6= bignum.oo flonum.oo generic.oo utils.oo
+OBJ7= storage.oo
+OBJ8= character.oo fileio.oo stringprim.oo ttyio.oo
+OBJ9= boot.oo
+OBJ10= syntax.oo
+OBJ11= bitstr.oo
+
+OBJECTS = $(OBJ0) $(OBJ1) $(OBJ2) $(OBJ3) $(OBJ4) \
+	  $(OBJ5) $(OBJ6) $(OBJ7) $(OBJ8) $(OBJ9) \
+	  $(OBJ10) $(OBJ11) os.oo bltdef.oo
+
+OBJ4bch= bchdmp.oo fasload.oo
+OBJ5bch= bchmmg.oo bchgcl.oo bchpur.oo purutl.oo comutl.oo
+
+BCHOBJECTS = $(OBJ0) $(OBJ1) $(OBJ2) $(OBJ3) $(OBJ4bch) \
+	     $(OBJ5bch) $(OBJ6) $(OBJ7) $(OBJ8) $(OBJ9) \
+	     $(OBJ10) $(OBJ11) os.oo bltdef.oo
+
+OSWITCHES = $(SWITCHES) -DCOMPILE_HISTORY -O
+
+
+OBJD0= interpret.do bkpt.do
+OBJD1= fixnum.do hooks.do hunk.do list.do \
+       step.do string.do vector.do sysprim.do daemon.do
+OBJD2= prim.do random.do primutl.do extern.do
+OBJD3= lookup.do debug.do intern.do
+OBJD4= fasdump.do fasload.do
+OBJD5= memmag.do gcloop.do purify.do purutl.do comutl.do
+OBJD6= bignum.do flonum.do generic.do utils.do
+OBJD7= storage.do
+OBJD8= character.do fileio.do stringprim.do ttyio.do
+OBJD9= boot.do
+OBJD10= syntax.do
+OBJD11= bitstr.do
+
+D_OBJECTS = $(OBJD0) $(OBJD1) $(OBJD2) $(OBJD3) $(OBJD4) \
+	    $(OBJD5) $(OBJD6) $(OBJD7) $(OBJD8) $(OBJD9) \
+	    $(OBJD10) $(OBJD11) os.do bltdef.do
+
+DSWITCHES = $(SWITCHES) -DENABLE_DEBUGGING_TOOLS
+
+
+OBJF0= interpret.fo
+OBJF1= fixnum.fo hooks.fo hunk.fo list.fo \
+       step.fo string.fo vector.fo sysprim.fo daemon.fo
+OBJF2= prim.fo random.fo primutl.fo extern.fo
+OBJF3= lookup.fo debug.fo intern.fo
+OBJF4= fasdump.fo fasload.fo
+OBJF5= bf-purify.fo comutl.fo
+OBJF6= bignum.fo flonum.fo generic.fo utils.fo
+OBJF7= storage.fo
+OBJF8= character.fo fileio.fo stringprim.fo ttyio.fo
+OBJF9= boot.fo
+OBJF10= syntax.fo
+OBJF11= bitstr.fo
+
+F_OBJECTS = $(OBJF0) $(OBJF1) $(OBJF2) $(OBJF3) $(OBJF4) \
+	    $(OBJF5) $(OBJF6) $(OBJF7) $(OBJF8) $(OBJF9) \
+	    $(OBJF10) $(OBJF11) os.fo bltdef.fo
+
+FSWITCHES = $(SWITCHES) -DTRAP_ON_REFERENCE -DCOMPILE_FUTURES -DMETERING
+# -DENABLE_DEBUGGING_TOOLS -DFUTURE_LOGGING  -DUSE_STACKLETS
+
+
+# This tells make how to generate the scheme object files
+
+.SUFFIXES: .oo .do .fo .o .opp .dpp .fpp .m4
+.c.opp: ; @$(ECHO) "#** Generating" $@
+	cc -E $(OSWITCHES) $*.c >$*.fpp
+.c.dpp: ; @$(ECHO) "#** Generating" $@
+	make Breakup
+	cc -E $(DSWITCHES) -DDEBUG $*.c | \
+	Breakup | \
+	sed -e 's/^#.*//' -e 's/^[ 	]*$$//' -e 's/^$$//' | \
+	sed -n -e '/^..*/p' > $*.dpp
+.c.fpp: ; @$(ECHO) "#** Generating" $@
+	cc -E $(FSWITCHES) $*.c >$*.fpp
+.c.oo: ; @$(ECHO) "#**   Generating" $@ because of $?
+	$(CC) -c $(OSWITCHES) $*.c
+	rm -f $*.oo
+	mv $*.o $*.oo
+.c.do: ; @$(ECHO) "#**   Generating" $@ because of $?
+	$(CC) -c $(DSWITCHES) $*.c
+	rm -f $*.do
+	mv $*.o $*.do
+.c.fo: ; @$(ECHO) "#**   Generating" $@ because of $?
+	$(CC) -c $(FSWITCHES) $*.c
+	rm -f $*.fo
+	mv $*.o68 $*.fo
+.c.o: ; @$(ECHO) "#**   Generating" $@ because of $?
+	$(CC) -c $(PSWITCHES) $*.c
+	mv $*.o68 $*.o
+.m4.o: ; @$(ECHO) "#**   Generating" $@ because of $?
+	@$(ECHO) "# as -m" $*.s
+	rm -f $*.o
+	/usr/blisp/tools/cvt -a -b -o $*.o $*.m4
+#	m4 $*.s >$*.m4
+#	as -o $*.o $*.m4
+.c.s: ; @$(ECHO) "#**   Generating" $@
+	$(CC) -S $(FSWITCHES) $*.c
+
+# Here are the main blocks to make
+
+all: blisp.68 outman.68 transman.68 hostem.68 meter.68 sfs.68 \
+		scheme.68 hist.68 wholine.68 bandload.68 ram-rm.68
+
+world: all scm6001 scm6003 bchscheme kwhscheme
+
+remove:
+	rm -f scheme bchscheme dscheme fscheme scm6001 scm6003 kwhscheme
+	rm -f Findprim Bintopsb Psbtobin Breakup Wsize Ppband
+	rm -f bltdef.c *.o *.oo *.do *.fo # cmp68020.m4
+	rm -f usrdef.c dusrdef.c fusrdef.c usr6001.c usr6003.c usrKWH.c
+	rm -f scheme.touch os.touch translate.touch usrdef.touch
+	rm -f lint.out lint.dout lint.fout
+
+relink:
+	@$(ECHO) "#**   Re-linking" $@ because of $?
+	rm -f scheme
+	$(CC) -o scheme $(OBJECTS) $(PRIM_OBJECTS) $(CFILE) $(LIB)
+
+scheme: $(OBJECTS) $(PRIM_OBJECTS) $(CFILE)
+	@$(ECHO) "#**   Re-linking" $@ because of $?
+	rm -f scheme
+	$(CC) -o scheme $(OBJECTS) $(PRIM_OBJECTS) $(CFILE) $(LIB)
+
+bchscheme: $(BCHOBJECTS) $(PRIM_OBJECTS) $(CFILE)
+	@$(ECHO) "#**   Re-linking" $@ because of $?
+	rm -f bchscheme
+	$(CC) -o bchscheme $(BCHOBJECTS) $(PRIM_OBJECTS) $(CFILE) $(LIB)
+
+scm6001: $(OBJECTS) $(6001_OBJECTS) $(CFILE)
+	@$(ECHO) "#**   Re-linking" $@ because of $?
+	rm -f scm6001
+	$(CC) -o scm6001 $(OBJECTS) $(6001_OBJECTS) $(CFILE) $(6001_LIB)
+
+scm6003: $(OBJECTS) $(6003_OBJECTS) $(CFILE)
+	@$(ECHO) "#**   Re-linking" $@ because of $?
+	rm -f scm6003
+	$(CC) -o scm6003 $(OBJECTS) $(6003_OBJECTS) $(CFILE) $(6003_LIB)
+
+kwhscheme: $(BCHOBJECTS) $(KWH_OBJECTS) $(CFILE)
+	@$(ECHO) "#**   Re-linking" $@ because of $?
+	rm -f kwhscheme
+	$(CC) -o kwhscheme $(BCHOBJECTS) $(KWH_OBJECTS) $(CFILE) $(KWH_LIB)
+
+dscheme: $(D_OBJECTS) $(D_PRIM_OBJECTS) $(D_CFILE)
+	@$(ECHO) "#**   Re-linking" $@ because of $?
+	rm -f dscheme
+	$(CC) -g -o dscheme $(D_OBJECTS) $(D_PRIM_OBJECTS) $(D_CFILE) $(LIB)
+
+blisp.68: $(F_OBJECTS) $(F_PRIM_OBJECTS) $(F_CFILE)
+	@$(ECHO) "#**   Re-linking" $@ because of $?
+	rm -f blisp.68
+	$(CC) -o blisp.68 $(F_OBJECTS) $(F_PRIM_OBJECTS) $(F_CFILE) $(LIB)
+	$(SPLITSYMS) blisp.68
+	$(NM) -ng blisp.68 >blisp.map
+	$(STRIP) blisp.68
+
+# Primitive table files
+
+# The first four are for VMS.
+
+builtin.txt:
+	make_vmslist builtin.txt $(SOURCES)
+
+usrdef.txt:
+	make_vmslist usrdef.txt $(PRIM_SOURCES)
+
+vmsbltdef.c:
+	echo "$$ Findprim -o bltdef.c -b $(NBUILT) -l builtin.txt"
+	$(CC) -c $(OSWITCHES) bltdef.c
+
+vmsusrdef.c:
+	echo "$$ Findprim -o usrdef.c -l usrdef.txt"
+	$(CC) -c $(OSWITCHES) usrdef.c
+#
+# This one should depend on SOURCES, but it changes rarely,
+# so it is left out be genrated by hand.
+#
+
+bltdef.c: usrdef.touch Findprim Makefile # $(SOURCES)
+	@$(ECHO) "#**   Re-making" $@ because of $?
+	rm -f bltdef.c
+	./Findprim -b $(NBUILT) $(SOURCES) >bltdef.c
+
+usrdef.c: usrdef.touch Findprim Makefile $(PRIM_SOURCES)
+	@$(ECHO) "#**   Re-making" $@ because of $?
+	rm -f usrdef.c
+	./Findprim $(PRIM_SOURCES) >usrdef.c
+
+dusrdef.c: $(D_PRIM_SOURCES) usrdef.touch Findprim Makefile
+	@$(ECHO) "#**   Re-making" $@ because of $?
+	rm -f dusrdef.c
+	./Findprim $(D_PRIM_SOURCES) >dusrdef.c
+
+fusrdef.c: $(F_PRIM_SOURCES) usrdef.touch Findprim Makefile
+	@$(ECHO) "#**   Re-making" $@ because of $?
+	rm -f fusrdef.c
+	./Findprim $(F_PRIM_SOURCES) >fusrdef.c
+
+usr6001.c: $(6001_SOURCES) usrdef.touch Findprim Makefile
+	@$(ECHO) "#**   Re-making" $@ because of $?
+	rm -f usr6001.c
+	./Findprim $(6001_SOURCES) >usr6001.c
+
+usr6003.c: $(6003_SOURCES) usrdef.touch Findprim Makefile
+	@$(ECHO) "#**   Re-making" $@ because of $?
+	rm -f usr6003.c
+	./Findprim $(6003_SOURCES) >usr6003.c
+
+usrKWH.c: $(KWH_SOURCES) usrdef.touch Findprim Makefile
+	@$(ECHO) "#**   Re-making" $@ because of $?
+	rm -f usrKWH.c
+	./Findprim $(KWH_SOURCES) >usrKWH.c
+
+Findprim: Findprim.c
+	cc -g -o Findprim Findprim.c
+
+Bintopsb: translate.touch trap.h load.c Bintopsb.c
+	@$(ECHO) "#**   Re-making" $@ because of $?
+	rm -f Bintopsb
+	$(CC) $(MAC) -O -o Bintopsb Bintopsb.c $(MATH_LIB)
+
+Psbtobin: translate.touch dump.c Psbtobin.c
+	@$(ECHO) "#**   Re-making" $@ because of $?
+	rm -f Psbtobin
+	$(CC) $(MAC) -O -o Psbtobin Psbtobin.c $(MATH_LIB)
+
+Breakup: Breakup.c
+	rm -f Breakup
+	$(CC) $(MAC) -O -o Breakup Breakup.c
+
+Wsize: Wsize.c
+	rm -f Wsize
+	$(CC) $(MAC) -o Wsize Wsize.c $(MATH_LIB)
+
+Ppband: scheme.touch fasl.h load.c gctype.c Ppband.c
+	rm -f Ppband
+	$(CC) $(MAC) -o Ppband Ppband.c
+
+cmp68021.o: cmp68021.m4
+cmpbfly.o: cmpbfly.m4
+
+# scheme.touch depends also on butterfly.h rename.c
+
+scheme.touch: scheme.h config.h bkpt.h object.h scode.h sdata.h	\
+	gc.h history.h interpret.h stack.h futures.h types.h	\
+	errors.h returns.h const.h fixobj.h default.h extern.h  \
+	prim.h
+	@$(ECHO) "#**   Resetting" $@ because of $?
+	touch scheme.touch
+
+os.touch: os.c chrys.c vms.c unknown.c scheme.touch zones.h
+	@$(ECHO) "#**   Resetting" $@ because of $?
+	touch os.touch
+
+translate.touch: config.h object.h bignum.h gc.h types.h	\
+	sdata.h const.h fasl.h load.c dump.c translate.h	\
+	$(GC_HEAD_FILES)
+	@$(ECHO) "#**   Resetting" $@ because of $?
+	touch translate.touch
+
+usrdef.touch: usrdef.h config.h object.h prim.h
+	@$(ECHO) "#**   Resetting" $@ because of $?
+	touch usrdef.touch
+
+HEAD_FILES = scheme.touch primitive.h zones.h locks.h		\
+	flonum.h bignum.h stringprim.h character.h		\
+	$(GC_HEAD_FILES) trap.h lookup.h
+
+lint.out: $(SOURCES) $(PRIM_SOURCES) $(CSRC) usrdef.c $(HEAD_FILES)
+	rm -f lint.out
+	lint $(OSWITCHES) $(SOURCES) $(PRIM_SOURCES) $(CSRC) usrdef.c >lint.out
+
+lint.dout: $(SOURCES) $(D_PRIM_SOURCES) $(CSRC) dusrdef.c $(HEAD_FILES)
+	rm -f lint.dout
+	lint $(DSWITCHES) $(SOURCES) $(D_PRIM_SOURCES) $(CSRC) dusrdef.c >lint.dout
+
+lint.fout: $(SOURCES) $(F_PRIM_SOURCES) $(CSRC) fusrdef.c $(HEAD_FILES)
+	rm -f lint.fout
+	lint $(FSWITCHES) $(SOURCES) $(F_PRIM_SOURCES) $(CSRC) fusrdef.c >lint.fout
+
+# Here are the source file dependencies on the header files
+
+$(OBJF0) $(OBJD0) $(OBJ0): scheme.touch lookup.h trap.h zones.h locks.h
+$(OBJF1) $(OBJD1) $(OBJ1): scheme.touch primitive.h
+$(OBJF2) $(OBJD2) $(OBJ2): scheme.touch primitive.h
+$(OBJF3) $(OBJD3) $(OBJ3): scheme.touch lookup.h trap.h primitive.h locks.h
+$(OBJF4) $(OBJD4) $(OBJ4): scheme.touch primitive.h trap.h $(GC_HEAD_FILES) fasl.h load.c dump.c
+$(OBJF5) $(OBJD5) $(OBJ5): scheme.touch primitive.h $(GC_HEAD_FILES) zones.h
+$(OBJF6) $(OBJD6) $(OBJ6): scheme.touch primitive.h flonum.h zones.h bignum.h
+$(OBJF7) $(OBJD7) $(OBJ7): scheme.touch gctype.c
+$(OBJF8) $(OBJD8) $(OBJ8): scheme.touch primitive.h stringprim.h character.h
+$(OBJF9) $(OBJD9) $(OBJ9): scheme.touch primitive.h version.h character.h Makefile
+$(OBJF10) $(OBJD10) $(OBJ10): scheme.touch primitive.h stringprim.h character.h edwin.h syntax.h
+$(OBJF11) $(OBJD11) $(OBJ11): scheme.touch primitive.h bignum.h bitstr.h
+$(PRIM_OBJECTS) $(D_PRIM_OBJECTS) $(F_PRIM_OBJECTS): $(HEAD_FILES)
+$(6001_OBJECTS) $(6003_OBJECTS) $(KWH_OBJECTS): $(HEAD_FILES)
+
+Sgraph.oo Sgraph.do Sgraph.fo: Sgraph.h
+Sgraph-xt.oo Sgraph-xt.do Sgraph-xt.fo: Sgraph.h
+Sgraph-ar.oo Sgraph-ar.do Sgraph-ar.fo: Sgraph.h array.h
+fft.oo fft.do fft.fo: array.h
+array.oo array.do array.fo: array.h
+image.oo image.do image.fo: array.h image.h
+hooks.oo hooks.do hooks.fo: winder.h
+utils.oo utils.do utils.fo: winder.h
+
+# These files have explicit dependencies
+
+os.oo os.do os.fo: scheme.touch os.touch zones.h
+compiler.oo compiler.do compiler.fo: config.h object.h sdata.h		\
+				     types.h errors.h const.h returns.h
+
+bchmmg.oo bchgcl.oo bckpur.oo: scheme.touch primitive.h bchgcc.h gccode.h
+bchdmp.oo: scheme.touch primitive.h bchgcc.h gccode.h fasl.h dump.c
+
+# Lint crud
+
+lint.out lint.dout lint.fout:					\
+	scheme.touch primitive.h fasl.h				\
+	flonum.h bignum.h locks.h zones.h Makefile unexec.c
+
+hostem.68: hostem.fo
+	$(CC) -o hostem.68 hostem.fo $(LIB)
+	$(SPLITSYMS) hostem.68
+	$(NM) -ng hostem.68 >hostem.map
+	$(STRIP) hostem.68
+
+transman.68: transman.fo tcp_service.fo
+	$(CC) -o transman.68 transman.fo tcp_service.fo $(LIB)
+	$(SPLITSYMS) transman.68
+	$(NM) -ng transman.68 >transman.map
+	$(STRIP) transman.68
+
+outman.68: outman.fo tcp_service.fo
+	$(CC) -o outman.68 outman.fo tcp_service.fo $(LIB)
+	$(SPLITSYMS) outman.68
+	$(NM) -ng outman.68 >outman.map
+	$(STRIP) outman.68
+
+scheme.68: scheme.fo sfs_util.fo
+	$(CC) -o scheme.68 scheme.fo sfs_util.fo $(LIB)
+	$(SPLITSYMS) scheme.68
+	$(NM) -ng scheme.68 >scheme.map
+	$(STRIP) scheme.68
+
+sfs.68: sfs.fo
+	$(CC) -o sfs.68 sfs.fo $(LIB) -X105
+	$(SPLITSYMS) sfs.68
+	$(NM) -ng sfs.68 >sfs.map
+	$(STRIP) sfs.68
+
+meter.68: meter.fo
+	$(CC) -o meter.68 meter.fo $(LIB) -X105
+	$(SPLITSYMS) meter.68
+	$(NM) -ng meter.68 >meter.map
+	$(STRIP) meter.68
+
+hist.68: hist.fo
+	$(CC) -o hist.68 hist.fo $(LIB) -X105
+	$(SPLITSYMS) hist.68
+	$(NM) -ng hist.68 >hist.map
+	$(STRIP) hist.68
+
+wholine.68: wholine.fo
+	$(CC) -o wholine.68 wholine.fo $(LIB) -X105
+	$(SPLITSYMS) wholine.68
+	$(NM) -ng wholine.68 >wholine.map
+	$(STRIP) wholine.68
+
+bandload.68: bandload.fo
+	$(CC) -o bandload.68 bandload.fo $(LIB) -X105
+	$(SPLITSYMS) bandload.68
+	$(NM) -ng bandload.68 >bandload.map
+	$(STRIP) bandload.68
+
+ram-rm.68: ram-rm.fo
+	$(CC) -o ram-rm.68 ram-rm.fo $(LIB) -X105
+	$(SPLITSYMS) ram-rm.68
+	$(NM) -ng ram-rm.68 >ram-rm.map
+	$(STRIP) ram-rm.68
+
+sfs_info.68: sfs_info.fo
+	$(CC) -o sfs_info.68 sfs_info.fo $(LIB) -X105
+	$(SPLITSYMS) sfs_info.68
+	$(NM) -ng sfs_info.68 >sfs_info.map
+	$(STRIP) sfs_info.68

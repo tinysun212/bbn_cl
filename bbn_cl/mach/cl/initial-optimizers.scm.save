@@ -1,0 +1,501 @@
+;;;                                ********
+;;;
+;;; Copyright 1992 by BBN Systems and Technologies, A division of Bolt,
+;;; Beranek and Newman Inc.
+;;; 
+;;; Permission to use, copy, modify and distribute this software and its
+;;; documentation is hereby granted without fee, provided that the above
+;;; copyright notice and this permission appear in all copies and in
+;;; supporting documentation, and that the name Bolt, Beranek and Newman
+;;; Inc. not be used in advertising or publicity pertaining to distribution
+;;; of the software without specific, written prior permission.  In
+;;; addition, BBN makes no respresentation about the suitability of this
+;;; software for any purposes.  It is provided "AS IS" without express or
+;;; implied warranties including (but not limited to) all implied warranties
+;;; of merchantability and fitness.  In no event shall BBN be liable for any
+;;; special, indirect or consequential damages whatsoever resulting from
+;;; loss of use, data or profits, whether in an action of contract,
+;;; negligence or other tortuous action, arising out of or in connection
+;;; with the use or performance of this software.
+;;; 
+;;;                                 ********
+;;; 
+;;;;; $Header: initial-optimizers.scm,v 1.5 88/04/25 11:25:47 ajc Exp $
+;; $Log:	initial-optimizers.scm,v $
+;; Revision 1.5  88/04/25  11:25:47  ajc
+;; Many, many changes.  First, optimizers made through generate-optimizer
+;; must indicate whether or not to continue optimizing.  Added
+;; optimizers for the inlineable primitives that need to touch.
+;; 
+;; Revision 1.4  88/04/18  14:22:54  las
+;; Added (proclaim '(futures-off)).
+;; 
+;; Revision 1.3  88/04/18  10:15:25  ajc
+;; Massive change for new optimizer interface.
+;; 
+;; Revision 1.2  88/03/09  15:47:20  ajc
+;; Optimized length of simple-strings, added optimizers to get
+;; cadd..r and friends inline to compositions of car and cdr.
+;; 
+;; Revision 1.1  88/02/26  19:28:22  ajc
+;; Initial revision
+;; 
+
+(proclaim '(futures-off))
+
+(define-macro (generate-type-optimizer spec touch-pattern cases)
+  (let ((name (first spec))
+	(args (cdr spec)))
+    (let ((number-of-args (length args)))
+      `(add-optimizer! 
+	(let* ((name (car ',spec))
+	       (f-name (fundefsym name)))
+	  (if (lexical-unassigned? '() f-name)
+	      name
+	      (let ((res
+		     (lexical-reference *commonlisp-user-environment* f-name)))
+		(if (primitive-procedure? res)
+		    res
+		    name))))
+	(lambda (required-type operator passed-args)
+	    (if (= (length passed-args) ,number-of-args)
+		(match-cases required-type
+			     operator
+			     passed-args
+			     ',spec
+			     ',cases
+			     (touch-if-needed passed-args ',touch-pattern))
+		(prim-values required-type operator passed-args #f)))))))
+
+(cl-define (match-cases required-type operator passed-args spec case-list touched-args)
+  (let ((a-list (make-alist (cdr spec) touched-args)))
+    (cl-define (match-loop cases)
+      (if (null? cases)
+	  (prim-values required-type operator passed-args #f)
+	  (let ((case (car cases)))
+	    (let ((variable-type-list (first case))
+		  (needed-type (second case))
+		  (resultant-type (if (eq? (third case) :required-type)
+				      required-type
+				      (third case)))
+		  (template (fourth case))
+		  (do-it-again? (fifth case)))
+	      (let ((binding (match-types required-type needed-type variable-type-list a-list)))
+		(if (not (eq? binding 'failed))
+		    (let ((result (instantiate-pattern binding template do-it-again?)))
+		      (prim-values
+		       (instantiation-type required-type resultant-type)
+		       (car result)
+		       (cdr result)
+		       do-it-again?))
+		    (match-loop (cdr cases))))))))
+    (match-loop case-list)))
+
+(cl-define (instantiation-type required-type resultant-type)
+  (if (and (not eq? required-type :UNKNOWN)
+	   (not (subtypep required-type resultant-type)))
+      (warn "Type result/required mismatch ~A ~A" resultant-type required-type))
+  resultant-type)
+      
+(cl-define (match-types required-type needed-type variable-type-list binding-alist)
+  (if (or (eq? needed-type '*)
+	  (and (not (eq? required-type :unknown))
+	       (let ((reduced-type
+		      (subtract-futures required-type)))
+		 (subtypep reduced-type needed-type))))
+       (let ()
+	 (cl-define (pattern-match-loop template frame)
+	   (cond ((eq? frame 'failed) 'failed)
+		 ((null? template) (reverse frame))
+		 (else
+		  (let ((proposed-binding (first template)))
+		    (let ((proposed-name (second proposed-binding))
+			  (proposed-type (first proposed-binding)))
+		      (let ((actual-arg (cdr (assq proposed-name binding-alist))))
+			(if (types-compatible? proposed-type actual-arg)
+			    (pattern-match-loop (cdr template)
+						(cons (list proposed-name actual-arg) frame))
+			    (pattern-match-loop template 'failed))))))))
+	 (pattern-match-loop variable-type-list '()))
+       'failed))
+
+(cl-define (instantiate-pattern pattern template do-it-again?)
+  (cond ((not (pair? template))
+	 (let ((found? (assq template pattern)))
+	   (if found?
+	       (if do-it-again?
+		   `(syntax-quote ,(second found?))
+		   (second found?))
+	       template)))
+	((eq? (car template) :primitive)
+	 (lexical-reference '() (second template)))
+	(else
+	 (cons (instantiate-pattern pattern (car template) do-it-again?)
+	       (instantiate-pattern pattern (cdr template) do-it-again?)))))
+
+(cl-define (types-compatible? type arg)
+  (let ((tp (syntax-type-of arg)))
+    (or (eq? type '*)
+	(and (not (eq? tp :unknown))
+	     (subtypep tp type)))))
+
+;; Defined later
+
+(cl-define (type-expand x) x)
+
+(cl-define (subtract-futures type)
+  (normalize-type-expr (type-expand `(and (not future) ,type))))
+
+(set! subtract-futures (symbol-function 'subtract-futures))
+
+;;; For now.  Redifined later
+
+(cl-define (normalize-type-expr x)
+  (if (and (pair? x)
+	   (eq? (first x) 'and)
+	   (equal? (second x) '(not future))
+	   (not (eq? (third x) 'future)))
+      (third x)
+      x))
+
+(cl-define (touch-if-needed args pattern)
+  (cond ((null? pattern)
+	 args)
+	((null? args)
+	 '())
+	((car pattern)
+	 (let* ((arg (car args))
+		(type (syntax-type-of arg)))
+	   (if (or (and (eq? type :unknown) (future-mode))
+		   (subtypep 'future type))
+	       (let ((new-type
+		      (if (eq? type :unknown)
+			  #t
+			  (subtract-futures type))))
+		 (cons (make-typed-combination new-type touch (list arg))
+		       (touch-if-needed (cdr args) (cdr pattern))))
+	       (cons arg (touch-if-needed (cdr args) (cdr pattern))))))
+	(else
+	 (cons (car args) (touch-if-needed (cdr args) (cdr pattern))))))
+
+(cl-define (make-alist a b)
+  (if (null? a)
+      '()
+      (cons (cons (car a) (car b))
+	    (make-alist (cdr a) (cdr b)))))
+
+$'split-file
+;;; The structure of these optimizers will be documented as
+;;; soon as things settle down.
+
+(generate-type-optimizer
+ (aref a b)
+ (#t #t)
+ ((((simple-vector a) (* b))     * :required-type (system-vector-ref a b)     #t)
+  (((simple-bit-vector a) (* b)) * bit            (bit-string-ref a b)        #t)
+  (((simple-string a) (* b))     * string-char    (string-ref a b)            #t)))
+
+(generate-type-optimizer
+ (length a)
+ (#t)
+ ((((list a))              * fixnum        (simple-list-length a)      #t)
+  (((simple-vector a))     * fixnum        (vector-length a)           #t)
+  (((simple-string a))     * fixnum        (string-length a)           #t)))
+
+(generate-type-optimizer
+ (char= a b)
+ (#t #t)
+ ((((string-char a) (string-char b)) * :required-type (equal-fixnum a b) #t)))
+
+(generate-type-optimizer
+ (char/= a b)
+ (#t #t)
+ ((((string-char a) (string-char b)) * :required-type (not (equal-fixnum a b)) #t)))
+  
+(generate-type-optimizer
+ (char< a b)
+ (#t #t)
+ ((((string-char a) (string-char b)) * :required-type (less-than-fixnum a b) #t)))
+
+(generate-type-optimizer
+ (char> a b)
+ (#t #t)
+ ((((string-char a) (string-char b)) * :required-type (greater-than-fixnum a b) #t)))
+
+(generate-type-optimizer
+ (char<= a b)
+ (#t #t)
+ ((((string-char a) (string-char b)) * :required-type (not (greater-than-fixnum a b)) #t)))
+
+(generate-type-optimizer
+ (char>= a b)
+ (#t #t)
+ ((((string-char a) (string-char b)) * :required-type (not (less-than-fixnum a b)) #t)))
+
+'$split-file
+;;; The touching primitives
+
+(define-macro (make-touch-setter-optimizer3 x)
+  `(generate-type-optimizer
+    (,x object index value)
+    (#t #t #f)
+    ((((* object) (* index) (* value)) * :required-type 
+				       ((:primitive ,x) object index value) #f))))
+
+(define-macro (make-touch-setter-optimizer2 x)
+  `(generate-type-optimizer
+    (,x object value)
+    (#t #f)
+    ((((* object) (* value)) * :required-type 
+			     ((:primitive ,x) object value) #f))))
+
+(make-touch-setter-optimizer3 system-vector-set!)
+(make-touch-setter-optimizer3 vector-set!)
+
+(define cl-sv-set! (make-primitive-procedure 'cl-sv-set!))
+(cl-define cl-sv-set! cl-sv-set!)
+(make-touch-setter-optimizer3 cl-sv-set!)
+
+(make-touch-setter-optimizer2 system-hunk3-set-cxr2!)
+(make-touch-setter-optimizer2 system-hunk3-set-cxr1!)
+(make-touch-setter-optimizer2 system-hunk3-set-cxr0!)
+(make-touch-setter-optimizer2 system-pair-set-car!)
+(make-touch-setter-optimizer2 system-pair-set-cdr!)
+(make-touch-setter-optimizer2 set-car!)
+(make-touch-setter-optimizer2 set-cdr!)
+(make-touch-setter-optimizer2 set-cell-contents!)
+
+(define-macro (make-touch-optimizer2 x)
+  `(generate-type-optimizer
+    (,x object index)
+    (#t #t)
+    ((((* object) (* index)) * :required-type 
+		  ((:primitive ,x) object index) #f))))
+
+(define-macro (make-touch-optimizer1 x)
+  `(generate-type-optimizer
+    (,x object)
+    (#t)
+    ((((* object)) * :required-type 
+		   ((:primitive ,x) object) #f))))
+
+(make-touch-optimizer2 system-vector-ref)
+(make-touch-optimizer2 vector-ref)
+(make-touch-optimizer1 system-hunk3-cxr2)
+(make-touch-optimizer1 system-hunk3-cxr1)
+(make-touch-optimizer1 system-hunk3-cxr0)
+(make-touch-optimizer1 system-pair-car)
+(make-touch-optimizer1 system-pair-cdr)
+(make-touch-optimizer1 car)
+(make-touch-optimizer1 cdr)
+(make-touch-optimizer1 cell-contents)
+(make-touch-optimizer1 bit-string-length)
+(make-touch-optimizer1 string-length)
+(make-touch-optimizer1 system-vector-size)
+(make-touch-optimizer1 vector-length)
+(make-touch-optimizer2 eq?)
+(make-touch-optimizer2 primitive-type?)
+(make-touch-optimizer1 bit-string?)
+(make-touch-optimizer1 string?)
+(make-touch-optimizer1 null?)
+(make-touch-optimizer1 pair?)
+
+'$split-file
+;;;; Two levels
+
+(generate-type-optimizer
+ (cddr a)
+ #f
+ ((((* a))       *       :required-type (cdr (cdr a))                  #t)))
+
+(generate-type-optimizer
+ (cdar a)
+ #f
+ ((((* a))       *       :required-type  (cdr (car a))                 #t)))
+
+(generate-type-optimizer
+ (cadr a)
+ #f
+ ((((* a))       *       :required-type  (car (cdr a))                 #t)))
+
+(generate-type-optimizer
+ (caar a)
+ #f
+ ((((* a))       *       :required-type  (car (car a))                 #t)))
+
+
+;;;; Three levels
+
+(generate-type-optimizer
+ (cdddr a)
+ #f
+ ((((* a))       *       :required-type  (cdr (cdr (cdr a)))           #t)))
+
+(generate-type-optimizer
+ (cddar a)
+ #f
+ ((((* a))       *       :required-type  (cdr (cdr (car a)))           #t)))
+
+(generate-type-optimizer
+ (cdadr a)
+ #f
+ ((((* a))       *       :required-type  (cdr (car (cdr a)))           #t)))
+
+(generate-type-optimizer
+ (cdaar a)
+ #f
+ ((((* a))       *       :required-type  (cdr (car (car a)))           #t)))
+
+(generate-type-optimizer
+ (caddr a)
+ #f
+ ((((* a))       *       :required-type  (car (cdr (cdr a)))           #t)))
+
+(generate-type-optimizer
+ (cadar a)
+ #f
+ ((((* a))       *       :required-type  (car (cdr (car a)))           #t)))
+
+(generate-type-optimizer
+ (caadr a)
+ #f
+ ((((* a))       *       :required-type  (car (car (cdr a)))           #t)))
+
+(generate-type-optimizer
+ (caaar a)
+ #f
+ ((((* a))       *       :required-type  (car (car (car a)))           #t)))
+
+'$split-file
+;;;; Four levels
+
+(generate-type-optimizer
+ (cddddr a)
+ #f
+ ((((* a))       *       :required-type  (cdr (cdr (cdr (cdr a))))     #t)))
+
+(generate-type-optimizer
+ (cdddar a)
+ #f
+ ((((* a))       *       :required-type  (cdr (cdr (cdr (car a))))     #t)))
+
+(generate-type-optimizer
+ (cddadr a)
+ #f
+ ((((* a))       *       :required-type  (cdr (cdr (car (cdr a))))     #t)))
+
+(generate-type-optimizer
+ (cddaar a)
+ #f
+ ((((* a))       *       :required-type  (cdr (cdr (car (car a))))     #t)))
+
+(generate-type-optimizer
+ (cdaddr a)
+ #f
+ ((((* a))       *       :required-type  (cdr (car (cdr (cdr a))))     #t)))
+
+(generate-type-optimizer
+ (cdadar a)
+ #f
+ ((((* a))       *       :required-type  (cdr (car (cdr (car a))))     #t)))
+
+(generate-type-optimizer
+ (cdaadr a)
+ #f
+ ((((* a))       *       :required-type  (cdr (car (car (cdr a))))     #t)))
+
+(generate-type-optimizer
+ (cdaaar a)
+ #f
+ ((((* a))       *       :required-type  (cdr (car (car (car a))))     #t)))
+
+(generate-type-optimizer
+ (cadddr a)
+ #f
+ ((((* a))       *       :required-type  (car (cdr (cdr (cdr a))))     #t)))
+
+(generate-type-optimizer
+ (caddar a)
+ #f
+ ((((* a))       *       :required-type  (car (cdr (cdr (car a))))     #t)))
+
+(generate-type-optimizer
+ (cadadr a)
+ #f
+ ((((* a))       *       :required-type  (car (cdr (car (cdr a))))     #t)))
+
+(generate-type-optimizer
+ (cadaar a)
+ #f
+ ((((* a))       *       :required-type  (car (cdr (car (car a))))     #t)))
+
+(generate-type-optimizer
+ (caaddr a)
+ #f
+ ((((* a))       *       :required-type  (car (car (cdr (cdr a))))     #t)))
+
+(generate-type-optimizer
+ (caadar a)
+ #f
+ ((((* a))       *       :required-type  (car (car (cdr (car a))))     #t)))
+
+(generate-type-optimizer
+ (caaadr a)
+ #f
+ ((((* a))       *       :required-type  (car (car (car (cdr a))))     #t)))
+
+(generate-type-optimizer
+ (caaaar a)
+ #f
+ ((((* a))       *       :required-type  (car (car (car (car a))))     #t)))
+
+'$split-file
+;;;; first through tenth
+
+;;; first will be handled via car
+
+(generate-type-optimizer
+ (second a)
+ #f
+ ((((* a))       *       :required-type    (car (cdr a))               #t)))
+
+(generate-type-optimizer
+ (third a)
+ #f
+ ((((* a))       *       :required-type    (car (cdr (cdr a)))         #t)))
+
+(generate-type-optimizer
+ (fourth a)
+ #f
+ ((((* a))       *       :required-type    (car (cdr (cdr (cdr a))))   #t)))
+
+(generate-type-optimizer
+ (fifth a)
+ #f
+ ((((* a))       *       :required-type    (car (cdr (cdr (cdr (cdr a)))))                      #t)))
+
+(generate-type-optimizer
+ (sixth a)
+ #f
+ ((((* a))       *       :required-type    (car (cdr (cdr (cdr (cdr (cdr a))))))                #t)))
+
+(generate-type-optimizer
+ (seventh a)
+ #f
+ ((((* a))       *       :required-type    (car (cdr (cdr (cdr (cdr (cdr (cdr a)))))))          #t)))
+
+(generate-type-optimizer
+ (eighth a)
+ #f
+ ((((* a))       *       :required-type    (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr a))))))))    #t)))
+
+(generate-type-optimizer
+ (ninth a)
+ #f
+ ((((* a))       *       :required-type    (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr a)))))))))    #t)))
+
+(generate-type-optimizer
+ (tenth a)
+ #f
+ ((((* a))       *       :required-type    (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr a)))))))))) #t)))
+

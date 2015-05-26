@@ -1,0 +1,1563 @@
+
+[The first part of this file shows how to reload
+ scheme and common lisp, compiled. The second part shows
+ an interpretive load. My comments are shown in square brackets,
+ like this one.]
+
+
+[First, make any desired changes to the microcode (see release notes).
+ Just adding primitives should not create the need to rebuild the bands
+ (what this file demonstrates), unless you have also made changes to the
+ scheme or common lisp sources.]
+
+[Making changes to sources in /usr/blisp/mach/runtime or /usr/blisp/mach/sf
+ requires recompiling the changed sources. Simply invoke scheme and CF them].
+
+[Note the band naming conventions:
+
+   - An "i" prefix means "interpretive".
+   - A "-c" suffix means "with the compiler".]
+
+[Below, reloading the basic scheme band is shown]
+
+mach -> cd /usr/blisp/mach/runtime
+mach -> ../uc/fscheme -fasl bf-run.bin
+Copyright 1989 by BBN Advanced Computers Inc.
+           ALL RIGHTS RESERVED
+  (see /usr/blisp/COPYRIGHT for details)
+Butterfly (r) is a registered trademark of BBN Advanced Computers Inc.
+There is 1 processor running Lisp
+409600 (0x64000) bytes (100.0KP) of stack will run from 0xf9c000 to 0xfffffc
+3276800 (0x320000) bytes (800.0KP) of constant space will run from 0xc7a000 to 0xf9a000
+2097152 (0x200000) bytes (512.0KP) of code space will run from 0xa70000 to 0xc6fffc
+10190848 (0x9b8000) bytes (2488.0KP) of heap space will run from 0xb8000 to 0xa70000
+2547712 pointers in each heap share
+Input server is process 4125
+File server is process 4126
+Created task 4128 on processor 0
+Microcode Version 10.29
+Butterfly Scheme/Common Lisp, unix [mach (butterfly)] version
+Load compiled? (y or n) y
+
+bf-gc.bin loaded purified evaluated
+utabs.com loaded purified evaluated
+implmd.com loaded purified evaluated
+boot.com loaded purified evaluated
+fixart.com loaded purified evaluated
+narith.com loaded purified evaluated
+equals.com loaded purified evaluated
+list.com loaded purified evaluated
+vector.com loaded purified evaluated
+string.com loaded purified evaluated
+char.com loaded purified evaluated
+bitstr.com loaded purified evaluated
+wind.com loaded purified evaluated
+sdata.com loaded purified evaluated
+scode.com loaded purified evaluated
+scomb.com loaded purified evaluated
+lambda.com loaded purified evaluated
+scan.com loaded purified evaluated
+ustruc.com loaded purified evaluated
+histry.com loaded purified evaluated
+stackp.bin loaded purified evaluated
+spmd.com loaded purified evaluated
+numpar.com loaded purified evaluated
+numunp.com loaded purified evaluated
+parse1.com loaded purified evaluated
+parse2.com loaded purified evaluated
+parse3.com loaded purified evaluated
+unpars.com loaded purified evaluated
+syntax.com loaded purified evaluated
+syntax1.com loaded purified evaluated loaded purified evaluated loaded purified evaluated
+cl-decls.com loaded purified evaluated loaded purified evaluated
+cl-syntax.com loaded purified evaluated loaded purified evaluated
+cl-optimp.com loaded purified evaluated loaded purified evaluated loaded purified evaluated loaded purified evaluated
+pathnm.bin loaded purified evaluated
+complt.bin loaded purified evaluated
+unxpth.bin loaded purified evaluated
+io.com loaded purified evaluated
+future.com loaded purified evaluated
+input.com loaded purified evaluated
+output.com loaded purified evaluated
+keyint.bin loaded purified evaluated
+rep.bin loaded purified evaluated
+bf-rep.bin loaded purified evaluated
+repuse.com loaded purified evaluated
+bf-repu.com loaded purified evaluated
+intrpt.bin loaded purified evaluated
+bf-intr.bin loaded purified evaluated
+error.bin loaded purified evaluated
+bf-error.bin loaded purified evaluated
+world.com loaded purified evaluated
+Cold load finished.  Type
+
+((access finish-load runtime-system))
+
+to load the rest of the system.
+
+1 ]=> ((access finish-load runtime-system))
+
+events.bin loaded purified evaluated
+system.com loaded purified evaluated
+sysclk.com loaded purified evaluated
+resource.com loaded purified evaluated
+macros.com loaded purified evaluated
+defstr.com loaded purified evaluated
+xlist.com loaded purified evaluated
+hash.com loaded purified evaluated
+types.com loaded purified evaluated
+stypes.com loaded purified evaluated
+crock.com loaded purified evaluated
+datime.com loaded purified evaluated
+msort.com loaded purified evaluated
+gensym.com loaded purified evaluated
+sfile.com loaded purified evaluated
+format.com loaded purified evaluated
+unsyn.com loaded purified evaluated
+pp.com loaded purified evaluated
+advice.bin loaded purified evaluated
+comand.com loaded purified evaluated
+where.com loaded purified evaluated
+debug.com loaded purified evaluated
+cdebug.com loaded purified evaluated
+bf-hacks.com loaded purified evaluated
+bf-load.com loaded purified evaluated
+bf-trace.com loaded purified evaluated
+defstru.com loaded purified evaluated
+which.com loaded purified evaluated loaded purified evaluated loaded purified evaluated loaded purified evaluated loaded purified evaluated loaded purified evaluated loaded purified evaluated
+elog.com loaded purified evaluated
+bf-io.com loaded purified evaluated
+bf-hard.com loaded purified evaluated
+Loading "/usr/blisp/mach/sf/make.bin"
+Load compiled (Y or N)? 
+Load compiled (Y or N)? y
+Yes
+FASLoading-Multiple "/usr/blisp/mach/sf/chtype.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/free.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/copy.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/pardec.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/usiexp.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/cgen.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/subst.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/xform.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/toplev.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/packag.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/tables.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/usicon.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/gconst.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/emodel.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/object.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/pthmap.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/eqsets.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/mvalue.com" -- done
+Purify
+Eval "mvalue.com"
+Eval "eqsets.com"
+Eval "pthmap.com"
+Eval "object.com"
+Eval "emodel.com"
+Eval "gconst.com"
+Eval "usicon.com"
+Eval "tables.com"
+Eval "packag.com"
+Eval "toplev.com"
+Eval "xform.com"
+Eval "subst.com"
+Eval "cgen.com"
+Eval "usiexp.com"
+Eval "pardec.com"
+Eval "copy.com"
+Eval "free.com"
+Eval "chtype.com"
+Done
+
+1 ]=> (disk-save "fscheme.band")
+
+()
+
+1 ]=> (exit)
+
+[Next, reload the compiler. Don't worry about the large -code and
+ -constant; these are trimmed by the disk-save.]
+
+mach -> cd /usr/blisp/mach/zcomp
+mach -> scheme -nint 1 -nmem 4 -nocompiler -code 1000 -constant 800
+Copyright 1989 by BBN Advanced Computers Inc.
+           ALL RIGHTS RESERVED
+  (see /usr/blisp/COPYRIGHT for details)
+Butterfly (r) is a registered trademark of BBN Advanced Computers Inc.
+This file requires -heap 35 -constant 139 -code 293
+Autosizing to -constant 800 -code 1008
+There is 1 processor running Lisp
+There are 4 processors being used for memory only
+409600 (0x64000) bytes (100.0KP) of stack will run from 0xf9c000 to 0xfffffc
+3276800 (0x320000) bytes (800.0KP) of constant space will run from 0xc7a000 to 0xf9a000
+4128768 (0x3f0000) bytes (1008.0KP) of code space will run from 0x880000 to 0xc6fffc
+8159232 (0x7c8000) bytes (1992.0KP) of heap space will run from 0xb8000 to 0x880000
+2039808 pointers in each heap share
+Input server is process 4459
+File server is process 4460
+Created task 4462 on processor 0
+Microcode Version 10.29
+Butterfly Scheme/Common Lisp, unix [mach (butterfly)] version
+
+Scheme saved on Friday February 10, 1989 at 10:22:32 AM
+  Release 6.2.0
+  Microcode 10.29
+  Runtime 14.80
+  SF 3.15
+
+1 ]=> (load "machines/butterfly/make.bin")
+
+Loading "/usr/blisp/mach/zcomp/machines/butterfly/make.bin"
+Loading "/usr/blisp/mach/zcomp/base/pkging.bin"
+Load compiled (Y or N)?    [Here, the system rings the bell. I happen to be using an emacs shell]
+Load compiled (Y or N)? y
+Yes
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/utils.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/debug.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/toplev.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/machin.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/pmpars.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/pmlook.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/scode.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/mvalue.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/sets.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/queue.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/enumer.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/object.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/decls.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/hashtb.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/macros.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/switch.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/etc/butils.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/etc/direct.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/pbs.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/touchify.com" -- done
+Purify
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/infutl.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/regset.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlobj.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlcfg.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlreg.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlcon.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlexp.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlty2.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlty1.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rgraph.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/subprb.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/contin.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/proced.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/blocks.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/lvalue.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/rvalue.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/ctypes.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/cfg3.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/cfg2.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/cfg1.com" -- done
+Purify
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/rgproc.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/rtlgen.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/offset.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/desenv.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/conect.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/order.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/simple.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/contan.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/blktyp.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/closan.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/operan.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/folcon.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/outer.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/simapp.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fggen/declar.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fggen/fggen.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/dassm3.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/dassm2.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/dassm1.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/insseq.com" -- done
+Purify
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/lapgn1.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/infnew.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/ralloc.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rdebug.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rdeath.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rlife.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rcsesr.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rcserq.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rcseht.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rcseep.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rcse2.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rcse1.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtline.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/rgspcm.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/opncod.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/fndblk.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/rgretn.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/rgcomb.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/rgrval.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/rgstmt.com" -- done
+Purify
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/symtab.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/assmd.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/instr4.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/instr3.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/instr2.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/instr1.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/insutl.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/insmac.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/asmmac.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/coerce.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/syntax.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/rules4.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/rules3.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/rules2.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/rules1.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/lapgen.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/linear.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/regmap.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/lapgn3.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/lapgn2.com" -- done
+Purify
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/bittop.com" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/bitutl.com" -- done
+Purify
+Eval "touchify.com"
+Eval "base/pbs.bin"
+Eval "etc/direct.bin"
+Eval "etc/butils.bin"
+Eval "base/switch.bin"
+Eval "base/macros.bin"
+Eval "base/hashtb.com"
+Eval "base/decls.com"
+Eval "base/object.com"
+Eval "base/enumer.com"
+Eval "base/queue.com"
+Eval "base/sets.com"
+Eval "base/mvalue.com"
+Eval "base/scode.com"
+Eval "base/pmlook.com"
+Eval "base/pmpars.com"
+Eval "machines/butterfly/machin.com"
+Eval "base/toplev.com"
+Eval "base/debug.com"
+Eval "base/utils.com"
+Eval "base/cfg1.com"
+Eval "base/cfg2.com"
+Eval "base/cfg3.com"
+Eval "base/ctypes.com"
+Eval "base/rvalue.com"
+Eval "base/lvalue.com"
+Eval "base/blocks.com"
+Eval "base/proced.com"
+Eval "base/contin.com"
+Eval "base/subprb.com"
+Eval "rtlbase/rgraph.com"
+Eval "rtlbase/rtlty1.com"
+Eval "rtlbase/rtlty2.com"
+Eval "rtlbase/rtlexp.com"
+Eval "rtlbase/rtlcon.com"
+Eval "rtlbase/rtlreg.com"
+Eval "rtlbase/rtlcfg.com"
+Eval "rtlbase/rtlobj.com"
+Eval "rtlbase/regset.com"
+Eval "base/infutl.com"
+Eval "back/insseq.com"
+Eval "machines/butterfly/dassm1.com"
+Eval "machines/butterfly/dassm2.com"
+Eval "machines/butterfly/dassm3.com"
+Eval "fggen/fggen.com"
+Eval "fggen/declar.com"
+Eval "fgopt/simapp.com"
+Eval "fgopt/outer.com"
+Eval "fgopt/folcon.com"
+Eval "fgopt/operan.com"
+Eval "fgopt/closan.com"
+Eval "fgopt/blktyp.com"
+Eval "fgopt/contan.com"
+Eval "fgopt/simple.com"
+Eval "fgopt/order.com"
+Eval "fgopt/conect.com"
+Eval "fgopt/desenv.com"
+Eval "fgopt/offset.com"
+Eval "rtlgen/rtlgen.com"
+Eval "rtlgen/rgproc.com"
+Eval "rtlgen/rgstmt.com"
+Eval "rtlgen/rgrval.com"
+Eval "rtlgen/rgcomb.com"
+Eval "rtlgen/rgretn.com"
+Eval "rtlgen/fndblk.com"
+Eval "rtlgen/opncod.com"
+Eval "machines/butterfly/rgspcm.com"
+Eval "rtlbase/rtline.com"
+Eval "rtlopt/rcse1.com"
+Eval "rtlopt/rcse2.com"
+Eval "rtlopt/rcseep.com"
+Eval "rtlopt/rcseht.com"
+Eval "rtlopt/rcserq.com"
+Eval "rtlopt/rcsesr.com"
+Eval "rtlopt/rlife.com"
+Eval "rtlopt/rdeath.com"
+Eval "rtlopt/rdebug.com"
+Eval "rtlopt/ralloc.com"
+Eval "base/infnew.com"
+Eval "back/lapgn1.com"
+Eval "back/lapgn2.com"
+Eval "back/lapgn3.com"
+Eval "back/regmap.com"
+Eval "back/linear.com"
+Eval "machines/butterfly/lapgen.com"
+Eval "machines/butterfly/rules1.com"
+Eval "machines/butterfly/rules2.com"
+Eval "machines/butterfly/rules3.com"
+Eval "machines/butterfly/rules4.com"
+Eval "back/syntax.com"
+Eval "machines/butterfly/coerce.com"
+Eval "back/asmmac.com"
+Eval "machines/butterfly/insmac.com"
+Eval "machines/butterfly/insutl.com"
+Eval "machines/butterfly/instr1.com"
+Eval "machines/butterfly/instr2.com"
+Eval "machines/butterfly/instr3.com"
+Eval "machines/butterfly/instr4.com"
+Eval "machines/butterfly/assmd.com"
+Eval "back/symtab.com"
+Eval "back/bitutl.com"
+Eval "back/bittop.com"
+Done
+Load bbn inline code files compiled? y
+
+FASLoading-Multiple "/usr/blisp/mach/zcomp/bbn-inline-code.com" -- done
+Loading "/usr/blisp/mach/zcomp/fltasm.com"
+
+1 ]=> (disk-save "fscheme-c.band")
+
+()
+
+1 ]=> (exit)
+
+[Next, we reload common lisp. If any source files were changed,
+ uncomment the appropriate compilation line in build-cl.scm
+ to recompile them.]
+
+mach -> cd /usr/blisp/mach/cl
+mach -> scheme -nint 1 -nmem 4 -code 1000 -constant 800
+Copyright 1989 by BBN Advanced Computers Inc.
+           ALL RIGHTS RESERVED
+  (see /usr/blisp/COPYRIGHT for details)
+Butterfly (r) is a registered trademark of BBN Advanced Computers Inc.
+This file requires -heap 104 -constant 240 -code 560
+Autosizing to -constant 800 -code 1008
+There is 1 processor running Lisp
+There are 4 processors being used for memory only
+409600 (0x64000) bytes (100.0KP) of stack will run from 0xf9c000 to 0xfffffc
+3276800 (0x320000) bytes (800.0KP) of constant space will run from 0xc7a000 to 0xf9a000
+4128768 (0x3f0000) bytes (1008.0KP) of code space will run from 0x880000 to 0xc6fffc
+8159232 (0x7c8000) bytes (1992.0KP) of heap space will run from 0xb8000 to 0x880000
+2039808 pointers in each heap share
+Input server is process 4476
+File server is process 4477
+Created task 4479 on processor 0
+Microcode Version 10.29
+Butterfly Scheme/Common Lisp, unix [mach (butterfly)] version
+
+Scheme saved on Friday February 10, 1989 at 1:00:18 PM
+  Release 6.2.0
+  Microcode 10.29
+  Runtime 14.80
+  SF 3.15
+  Liar (Butterfly 68020) 4.7
+
+1 ]=> (load "build-cl.scm")
+
+Loading "/usr/blisp/mach/cl/build-cl.scm"
+Loading "/usr/blisp/mach/cl/build-load.bin"
+Load compiled? (y or n): y
+
+;;; Loading "impurify-patch.com"
+;;; Loading "cl-error-boot.com"
+;;; Loading "perf.com"
+;;; Loading "symbol.com"
+;;; Loading "pkg-extensions.com"
+;;; Loading "cl-fixobj.com"
+;;; Loading "cl-kernel.com"
+;;; Loading "syntax-extensions.com"
+;;; Loading "errset.com"
+;;; Loading "values.com"
+;;; Loading "make-cl-io.com"
+;;; Loading "cl-parse.com"
+;;; Loading "cl-readtable.com"
+;;; Loading "cl-unparse.com"
+;;; Loading "cl-format.com"
+;;; Loading "cl-pp.com"
+;;; Loading "cl-compile-file.com"
+;;; Loading "boot-np-inline.com"
+;;; Loading "exported-scheme-builtins.com"
+;;; Exporting Scheme procedures to Common Lisp...
+;;; 8776 symbols were examined.
+;;; 1327 procedures were exported (264 primitives and 1063 compound procedures)
+;;; Loading "cl-macros.com"
+;;; Loading "integration-stubs.com"
+;;; Loading "optimizer-interface.com"
+;;; Loading "np-inline.com"
+;;; Loading "initial-optimizers.com"
+;;; Loading "proclaim.com"
+;;; Loading "arith.com"
+;;; Loading "cl-array-prims.com"
+;;; Loading "localinit.com"
+;;; Loading "cl-util.com"
+;;; Loading "cl-util2.com"
+;;; Loading "clchap5-a.com"
+;;; Loading "clchap5-b.com"
+;;; Loading "defun.com"
+;;; Loading "predicates.com"
+;;; Loading "clchap7.com"
+;;; Loading "clchap7b.com"
+;;; Loading "clchap9.com"
+;;; Loading "clchap10.com"
+;;; Warning: redefining function GET
+;;; Loading "clchap5a.com"
+;;; Loading "arith-constants.com"
+;;; Expanding (defconstant %FIXNUM-LENGTH)
+;;; Expanding (defconstant MOST-POSITIVE-FIXNUM)
+;;; Expanding (defconstant MOST-NEGATIVE-FIXNUM)
+;;; Expanding (defconstant %SHORT-FLOAT-EXPONENT-LENGTH)
+;;; Expanding (defconstant %SHORT-FLOAT-MANTISSA-LENGTH)
+;;; Expanding (defconstant %SINGLE-FLOAT-EXPONENT-LENGTH)
+;;; Expanding (defconstant %SINGLE-FLOAT-MANTISSA-LENGTH)
+;;; Expanding (defconstant %DOUBLE-FLOAT-EXPONENT-LENGTH)
+;;; Expanding (defconstant %DOUBLE-FLOAT-MANTISSA-LENGTH)
+;;; Expanding (defconstant %LONG-FLOAT-EXPONENT-LENGTH)
+;;; Expanding (defconstant %LONG-FLOAT-MANTISSA-LENGTH)
+;;; Expanding (defconstant PI)
+;;; Expanding (defconstant MOST-POSITIVE-SHORT-FLOAT)
+;;; Expanding (defconstant MOST-NEGATIVE-SHORT-FLOAT)
+;;; Expanding (defconstant LEAST-POSITIVE-SHORT-FLOAT)
+;;; Expanding (defconstant LEAST-NEGATIVE-SHORT-FLOAT)
+;;; Expanding (defconstant SHORT-FLOAT-EPSILON)
+;;; Expanding (defconstant SHORT-FLOAT-NEGATIVE-EPSILON)
+;;; Expanding (defconstant MOST-POSITIVE-SINGLE-FLOAT)
+;;; Expanding (defconstant MOST-NEGATIVE-SINGLE-FLOAT)
+;;; Expanding (defconstant LEAST-POSITIVE-SINGLE-FLOAT)
+;;; Expanding (defconstant LEAST-NEGATIVE-SINGLE-FLOAT)
+;;; Expanding (defconstant SINGLE-FLOAT-EPSILON)
+;;; Expanding (defconstant SINGLE-FLOAT-NEGATIVE-EPSILON)
+;;; Expanding (defconstant MOST-POSITIVE-DOUBLE-FLOAT)
+;;; Expanding (defconstant MOST-NEGATIVE-DOUBLE-FLOAT)
+;;; Expanding (defconstant LEAST-POSITIVE-DOUBLE-FLOAT)
+;;; Expanding (defconstant LEAST-NEGATIVE-DOUBLE-FLOAT)
+;;; Expanding (defconstant DOUBLE-FLOAT-EPSILON)
+;;; Expanding (defconstant DOUBLE-FLOAT-NEGATIVE-EPSILON)
+;;; Expanding (defconstant MOST-POSITIVE-LONG-FLOAT)
+;;; Expanding (defconstant MOST-NEGATIVE-LONG-FLOAT)
+;;; Expanding (defconstant LEAST-POSITIVE-LONG-FLOAT)
+;;; Expanding (defconstant LEAST-NEGATIVE-LONG-FLOAT)
+;;; Expanding (defconstant LONG-FLOAT-EPSILON)
+;;; Expanding (defconstant LONG-FLOAT-NEGATIVE-EPSILON)
+;;; Loading "lambda-constants.com"
+;;; Expanding (defconstant LAMBDA-PARAMETERS-LIMIT)
+;;; Expanding (defconstant LAMBDA-LIST-KEYWORDS)
+;;; Expanding (defconstant CALL-ARGUMENTS-LIMIT)
+;;; Expanding (defconstant MULTIPLE-VALUES-LIMIT)
+;;; Loading "equalp.com"
+;;; Loading "clchap13.com"
+;;; Expanding (defconstant CHAR-CODE-LIMIT)
+;;; Warning: "redefining constant ~a" (CHAR-CODE-LIMIT)
+;;; Expanding (defconstant CHAR-FONT-LIMIT)
+;;; Expanding (defconstant CHAR-BITS-LIMIT)
+;;; Warning: "redefining constant ~a" (CHAR-BITS-LIMIT)
+;;; Expanding (defconstant OTHER-GRAPHIC-CHARS)
+;;; Warning: redefining function MAKE-CHAR
+;;; Expanding (defconstant TOP-CHARACTER-START)
+;;; Expanding (defconstant CHAR-CONTROL-BIT)
+;;; Expanding (defconstant CHAR-META-BIT)
+;;; Expanding (defconstant CHAR-SUPER-BIT)
+;;; Expanding (defconstant CHAR-HYPER-BIT)
+;;; Loading "clchap15.com"
+;;; Warning: redefining function CDDR
+;;; Warning: redefining function CDAR
+;;; Warning: redefining function CADR
+;;; Warning: redefining function CAAR
+;;; Warning: redefining function CDDDR
+;;; Warning: redefining function CDDAR
+;;; Warning: redefining function CDADR
+;;; Warning: redefining function CDAAR
+;;; Warning: redefining function CADDR
+;;; Warning: redefining function CADAR
+;;; Warning: redefining function CAADR
+;;; Warning: redefining function CAAAR
+;;; Warning: redefining function CDDDDR
+;;; Warning: redefining function CDDDAR
+;;; Warning: redefining function CDDADR
+;;; Warning: redefining function CDDAAR
+;;; Warning: redefining function CDADDR
+;;; Warning: redefining function CDADAR
+;;; Warning: redefining function CDAADR
+;;; Warning: redefining function CDAAAR
+;;; Warning: redefining function CADDDR
+;;; Warning: redefining function CADDAR
+;;; Warning: redefining function CADADR
+;;; Warning: redefining function CADAAR
+;;; Warning: redefining function CAADDR
+;;; Warning: redefining function CAADAR
+;;; Warning: redefining function CAAADR
+;;; Warning: redefining function CAAAAR
+;;; Warning: redefining function SECOND
+;;; Warning: redefining function THIRD
+;;; Warning: redefining function FOURTH
+;;; Warning: redefining function FIFTH
+;;; Warning: redefining function SIXTH
+;;; Warning: redefining function SEVENTH
+;;; Warning: redefining function EIGHTH
+;;; Warning: redefining function MAKE-LIST
+;;; Warning: redefining function COPY-LIST
+;;; Loading "clchap7a.com"
+;;; Warning: redefining function MAPC
+;;; Warning: redefining function MAPCAR
+;;; Warning: redefining function MAPCAN
+;;; Loading "clchap8-comm.com"
+;;; Loading "clchap8-a.com"
+;;; Warning: redefining function PARSE-BODY-INTERNAL
+;;; Loading "clchap8-b-1.com"
+;;; Loading "clchap8-b-2.com"
+;;; Loading "clchap8-c.com"
+;;; Warning: redefining function MACROEXPAND
+;;; Loading "clchap8a.com"
+;;; Loading "clchap7c-comm.com"
+;;; Loading "clchap7c-a.com"
+;;; Loading "clchap7c-b-1.com"
+;;; Loading "clchap7c-b-2.com"
+;;; Loading "check-type.com"
+;;; Loading "clchap7d-a.com"
+;;; Loading "clchap7d-b.com"
+;;; Loading "clchap15a.com"
+;;; Warning: redefining function MEMBER
+;;; Warning: redefining function ASSOC
+;;; Loading "clchap25.com"
+;;; Expanding (defconstant INTERNAL-TIME-UNITS-PER-SECOND)
+;;; Expanding (defconstant SCHEME-INTERNAL-TIME-UNITS-PER-SECOND)
+;;; Expanding (defconstant CL-GC-KEYS)
+;;; Expanding (defconstant GC-KEY-MAP)
+;;; Warning: redefining function GC-NOTIFICATION-MODE
+;;; Warning: redefining function TIME as a macro
+;;; Warning: redefining function TRACE as a macro
+;;; Warning: redefining function UNTRACE as a macro
+;;; Loading "clchap7e.com"
+;;; Loading "clchap7f.com"
+;;; Loading "typespec.com"
+;;; Expanding (defconstant COMMONLISP-TYPES-VECTOR)
+;;; Warning: redefining function TYPE-EXPAND
+;;; Loading "typep.com"
+;;; Expanding (defconstant TYPE-PRED-ALIST)
+;;; Warning: redefining function TYPEP
+;;; Loading "cl-array.com"
+;;; Expanding (defconstant ARRAY-RANK-LIMIT)
+;;; Expanding (defconstant ARRAY-DIMENSION-LIMIT)
+;;; Expanding (defconstant ARRAY-TOTAL-SIZE-LIMIT)
+;;; Warning: redefining function VECTOR
+;;; Loading "cl-coerce.com"
+;;; Loading "subtypep.com"
+;;; Expanding (defconstant *SUBTYPE-CACHE-SIZE*)
+;;; Warning: redefining function CLEAR-SUBTYPE-CACHE
+;;; Warning: redefining function SUBTYPEP
+;;; Loading "sequence-simple.com"
+;;; Warning: redefining function LENGTH
+;;; Warning: redefining function REVERSE
+;;; Warning: redefining function NREVERSE
+;;; Warning: redefining function MAKE-SEQUENCE
+;;; Loading "sequence-map.com"
+;;; Warning: redefining function MAP
+;;; Loading "sequence-modify.com"
+;;; Warning: redefining function DELETE
+;;; Loading "sequence-search.com"
+;;; Loading "sequence-sort.com"
+;;; Warning: redefining function SORT
+;;; Loading "normalize-type-expr.com"
+;;; Warning: redefining function NORMALIZE-TYPE-EXPR
+;;; Loading "clchap20.com"
+;;; Expanding (defconstant COMMONLISP-CONSTANT-VECTOR)
+;;; Loading "cl-array-2.com"
+;;; Loading "cl-string.com"
+;;; Warning: redefining function MAKE-STRING
+;;; Warning: redefining function STRING-TRIM
+;;; Warning: redefining function STRING-UPCASE
+;;; Warning: redefining function STRING-DOWNCASE
+;;; Warning: redefining function STRING-CAPITALIZE
+;;; Loading "clchap11.com"
+;;; Loading "clchap19.com"
+;;; Loading "clchap16-comm.com"
+;;; Expanding (defconstant SXHASH-MAX)
+;;; Expanding (defconstant 2^20)
+;;; Loading "clchap16-a-1.com"
+;;; Loading "clchap16-a-2.com"
+;;; Loading "clchap16-b.com"
+;;; Loading "arith-defs-i.com"
+;;; Loading "arith-defs-j.com"
+;;; Expanding (defconstant BOOLE-CLR)
+;;; Expanding (defconstant BOOLE-SET)
+;;; Expanding (defconstant BOOLE-1)
+;;; Expanding (defconstant BOOLE-2)
+;;; Expanding (defconstant BOOLE-C1)
+;;; Expanding (defconstant BOOLE-C2)
+;;; Expanding (defconstant BOOLE-AND)
+;;; Expanding (defconstant BOOLE-IOR)
+;;; Expanding (defconstant BOOLE-XOR)
+;;; Expanding (defconstant BOOLE-EQV)
+;;; Expanding (defconstant BOOLE-NAND)
+;;; Expanding (defconstant BOOLE-NOR)
+;;; Expanding (defconstant BOOLE-ANDC1)
+;;; Expanding (defconstant BOOLE-ANDC2)
+;;; Expanding (defconstant BOOLE-ORC1)
+;;; Expanding (defconstant BOOLE-ORC2)
+;;; Loading "arith-defs-k.com"
+;;; Expanding (defconstant RANDOM-CONST-A)
+;;; Expanding (defconstant RANDOM-CONST-C)
+;;; Expanding (defconstant RANDOM-UPPER-BOUND)
+;;; Expanding (defconstant RANDOM-MAX)
+;;; Warning: redefining function RANDOM
+;;; Loading "filesys.com"
+;;; Warning: redefining function MERGE-PATHNAMES
+;;; Warning: redefining function MAKE-PATHNAME
+;;; Warning: redefining function PATHNAME-HOST
+;;; Warning: redefining function PATHNAME-DEVICE
+;;; Warning: redefining function PATHNAME-DIRECTORY
+;;; Warning: redefining function PATHNAME-NAME
+;;; Warning: redefining function PATHNAME-TYPE
+;;; Warning: redefining function PATHNAME-VERSION
+;;; Warning: redefining function RENAME-FILE
+;;; Warning: redefining function DELETE-FILE
+;;; Loading "stream-interface.com"
+;;; Warning: redefining function WITH-INPUT-FROM-STRING as a macro
+;;; Warning: redefining function WITH-OUTPUT-TO-STRING as a macro
+;;; Expanding (defconstant OPEN-KEY-TABLE)
+;;; Loading "reader-interface.com"
+;;; Warning: redefining function READ
+;;; Loading "printer-interface.com"
+;;; Warning: redefining function WRITE
+;;; Warning: redefining function PRIN1
+;;; Warning: redefining function PRINT
+;;; Warning: redefining function PRINC
+;;; Warning: redefining function TERPRI
+;;; Warning: redefining function WRITE-TO-STRING
+;;; Loading "error.com"
+;;; Warning: redefining function ERROR
+;;; Warning: redefining function CERROR
+;;; Warning: redefining function WARN
+;;; Warning: redefining function BREAK
+;;; Loading "cl-errset.com"
+;;; Loading "modules.com"
+;;; Loading "parallel.com"
+;;; Warning: redefining function GLOBAL-INTERRUPT as a macro
+;;; Loading "misc-exports.com"
+;;; Loading "package-common.com"
+;;; Loading "package-a.com"
+;;; Loading "package-b.com"
+;;; Loading "package-c.com"
+;;; Warning: redefining function INTERN
+;;; Loading "package-d.com"
+;;; Warning: redefining function EXPORT
+;;; Loading "package-e.com"
+;;; Loading "system-config.com"
+;;; Loading "system-init.com"
+;;; Loading "cl-fluids.com"
+;;; Loading "setup-packages.com"
+;;; Time to export LISP package symbols: 39.45
+
+;;; Expanding (defmacro QUASIQUOTE)
+;;;
+;;; Be sure to do the following things by hand:
+;;;
+
+(cl-mode -cl-io #t) (proclaim '(insert-touches t)) (proclaim '(lr-evaluation t)) (disk-save "cl-c.band" "Butterfly Common Lisp")
+
+
+()
+
+USER]=> (cl-mode -cl-io #t)
+
+NIL 
+
+USER]=> (proclaim '(insert-touches t))
+
+NIL 
+
+USER]=> (proclaim '(lr-evaluation t))
+
+NIL 
+
+USER]=> (disk-save "cl-c.band" "Butterfly Common Lisp")
+
+NIL 
+
+USER]=> (exit)
+mach -> 
+
+
+[We are now finished building all compiled bands. The following
+interpretive bands may be built if desired. Note that this is a completeley
+independent build; the compiled bands need not be built first.]
+
+
+mach -> cd /usr/blisp/mach/runtime
+mach -> ../uc/fscheme -fasl bf-run.bin
+Copyright 1989 by BBN Advanced Computers Inc.
+           ALL RIGHTS RESERVED
+  (see /usr/blisp/COPYRIGHT for details)
+Butterfly (r) is a registered trademark of BBN Advanced Computers Inc.
+There is 1 processor running Lisp
+409600 (0x64000) bytes (100.0KP) of stack will run from 0xf9c000 to 0xfffffc
+3276800 (0x320000) bytes (800.0KP) of constant space will run from 0xc7a000 to 0xf9a000
+2097152 (0x200000) bytes (512.0KP) of code space will run from 0xa70000 to 0xc6fffc
+10190848 (0x9b8000) bytes (2488.0KP) of heap space will run from 0xb8000 to 0xa70000
+2547712 pointers in each heap share
+Input server is process 4847
+File server is process 4848
+Created task 4851 on processor 0
+Microcode Version 10.29
+Butterfly Scheme/Common Lisp, unix [mach (butterfly)] version
+Load compiled? (y or n) n
+
+bf-gc.bin loaded purified evaluated
+utabs.bin loaded purified evaluated
+implmd.bin loaded purified evaluated
+boot.bin loaded purified evaluated
+fixart.bin loaded purified evaluated
+narith.bin loaded purified evaluated
+equals.bin loaded purified evaluated
+list.bin loaded purified evaluated
+vector.bin loaded purified evaluated
+string.bin loaded purified evaluated
+char.bin loaded purified evaluated
+bitstr.bin loaded purified evaluated
+wind.bin loaded purified evaluated
+sdata.bin loaded purified evaluated
+scode.bin loaded purified evaluated
+scomb.bin loaded purified evaluated
+lambda.bin loaded purified evaluated
+scan.bin loaded purified evaluated
+ustruc.bin loaded purified evaluated
+histry.bin loaded purified evaluated
+stackp.bin loaded purified evaluated
+spmd.bin loaded purified evaluated
+numpar.bin loaded purified evaluated
+numunp.bin loaded purified evaluated
+parse1.bin loaded purified evaluated
+parse2.bin loaded purified evaluated
+parse3.bin loaded purified evaluated
+unpars.bin loaded purified evaluated
+syntax.bin loaded purified evaluated
+syntax1.bin loaded purified evaluated loaded purified evaluated loaded purified evaluated
+cl-decls.bin loaded purified evaluated loaded purified evaluated
+cl-syntax.bin loaded purified evaluated loaded purified evaluated
+cl-optimp.bin loaded purified evaluated loaded purified evaluated loaded purified evaluated loaded purified evaluated
+pathnm.bin loaded purified evaluated
+complt.bin loaded purified evaluated
+unxpth.bin loaded purified evaluated
+io.bin loaded purified evaluated
+future.bin loaded purified evaluated
+input.bin loaded purified evaluated
+output.bin loaded purified evaluated
+keyint.bin loaded purified evaluated
+rep.bin loaded purified evaluated
+bf-rep.bin loaded purified evaluated
+repuse.bin loaded purified evaluated
+bf-repu.bin loaded purified evaluated
+intrpt.bin loaded purified evaluated
+bf-intr.bin loaded purified evaluated
+error.bin loaded purified evaluated
+bf-error.bin loaded purified evaluated
+world.bin loaded purified evaluated
+Cold load finished.  Type
+
+((access finish-load runtime-system))
+
+to load the rest of the system.
+
+1 ]=> ((access finish-load runtime-system))
+
+events.bin loaded purified evaluated
+system.bin loaded purified evaluated
+sysclk.bin loaded purified evaluated
+resource.bin loaded purified evaluated
+macros.bin loaded purified evaluated
+defstr.bin loaded purified evaluated
+xlist.bin loaded purified evaluated
+hash.bin loaded purified evaluated
+types.bin loaded purified evaluated
+stypes.bin loaded purified evaluated
+crock.bin loaded purified evaluated
+datime.bin loaded purified evaluated
+msort.bin loaded purified evaluated
+gensym.bin loaded purified evaluated
+sfile.bin loaded purified evaluated
+format.bin loaded purified evaluated
+unsyn.bin loaded purified evaluated
+pp.bin loaded purified evaluated
+advice.bin loaded purified evaluated
+comand.bin loaded purified evaluated
+where.bin loaded purified evaluated
+debug.bin loaded purified evaluated
+cdebug.bin loaded purified evaluated
+bf-hacks.bin loaded purified evaluated
+bf-load.bin loaded purified evaluated
+bf-trace.bin loaded purified evaluated
+defstru.bin loaded purified evaluated
+which.bin loaded purified evaluated loaded purified evaluated loaded purified evaluated loaded purified evaluated loaded purified evaluated loaded purified evaluated loaded purified evaluated
+elog.bin loaded purified evaluated
+bf-io.bin loaded purified evaluated
+bf-hard.bin loaded purified evaluated
+Loading "/usr/blisp/mach/sf/make.bin"
+Load compiled (Y or N)? 
+Load compiled (Y or N)? n
+No
+FASLoading-Multiple "/usr/blisp/mach/sf/chtype.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/free.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/copy.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/pardec.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/usiexp.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/cgen.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/subst.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/xform.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/toplev.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/packag.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/tables.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/usicon.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/gconst.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/emodel.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/object.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/pthmap.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/eqsets.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/sf/mvalue.bin" -- done
+Purify
+Eval "mvalue.bin"
+Eval "eqsets.bin"
+Eval "pthmap.bin"
+Eval "object.bin"
+Eval "emodel.bin"
+Eval "gconst.bin"
+Eval "usicon.bin"
+Eval "tables.bin"
+Eval "packag.bin"
+Eval "toplev.bin"
+Eval "xform.bin"
+Eval "subst.bin"
+Eval "cgen.bin"
+Eval "usiexp.bin"
+Eval "pardec.bin"
+Eval "copy.bin"
+Eval "free.bin"
+Eval "chtype.bin"
+Done
+
+1 ]=> (disk-save "ifscheme.band")
+
+()
+
+1 ]=> (exit)
+
+mach -> cd /usr/blisp/mach/zcomp
+mach -> scheme -interpretive -nocompiler -nint 1 -nmem 4 -constant 800
+Copyright 1989 by BBN Advanced Computers Inc.
+           ALL RIGHTS RESERVED
+  (see /usr/blisp/COPYRIGHT for details)
+Butterfly (r) is a registered trademark of BBN Advanced Computers Inc.
+This file requires -heap 48 -constant 241 -code 1
+Autosizing to -constant 800 -code 64
+There is 1 processor running Lisp
+There are 4 processors being used for memory only
+409600 (0x64000) bytes (100.0KP) of stack will run from 0xf9c000 to 0xfffffc
+3284992 (0x322000) bytes (802.0KP) of constant space will run from 0xc78000 to 0xf9a000
+262144 (0x40000) bytes ( 64.0KP) of code space will run from 0xc30000 to 0xc6fffc
+12017664 (0xb76000) bytes (2934.0KP) of heap space will run from 0xb8000 to 0xc2e000
+3004416 pointers in each heap share
+Input server is process 389
+File server is process 390
+Created task 392 on processor 0
+Microcode Version 10.29
+Butterfly Scheme/Common Lisp, unix [mach (butterfly)] version
+
+Scheme saved on Friday February 10, 1989 at 2:13:24 PM
+  Release 6.2.0
+  Microcode 10.29
+  Runtime 14.80
+  SF 3.15
+
+1 ]=> (load "machines/butterfly/make.bin")
+
+Loading "/usr/blisp/mach/zcomp/machines/butterfly/make.bin"
+Loading "/usr/blisp/mach/zcomp/base/pkging.bin"
+Load compiled (Y or N)? 
+Load compiled (Y or N)? n
+No
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/utils.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/debug.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/toplev.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/machin.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/pmpars.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/pmlook.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/scode.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/mvalue.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/sets.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/queue.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/enumer.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/object.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/decls.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/hashtb.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/macros.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/switch.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/etc/butils.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/etc/direct.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/pbs.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/touchify.bin" -- done
+Purify
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/infutl.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/regset.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlobj.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlcfg.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlreg.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlcon.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlexp.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlty2.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtlty1.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rgraph.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/subprb.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/contin.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/proced.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/blocks.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/lvalue.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/rvalue.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/ctypes.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/cfg3.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/cfg2.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/cfg1.bin" -- done
+Purify
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/rgproc.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/rtlgen.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/offset.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/desenv.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/conect.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/order.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/simple.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/contan.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/blktyp.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/closan.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/operan.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/folcon.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/outer.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fgopt/simapp.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fggen/declar.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/fggen/fggen.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/dassm3.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/dassm2.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/dassm1.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/insseq.bin" -- done
+Purify
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/lapgn1.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/base/infnew.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/ralloc.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rdebug.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rdeath.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rlife.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rcsesr.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rcserq.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rcseht.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rcseep.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rcse2.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlopt/rcse1.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlbase/rtline.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/rgspcm.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/opncod.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/fndblk.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/rgretn.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/rgcomb.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/rgrval.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/rtlgen/rgstmt.bin" -- done
+Purify
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/symtab.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/assmd.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/instr4.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/instr3.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/instr2.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/instr1.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/insutl.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/insmac.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/asmmac.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/coerce.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/syntax.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/rules4.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/rules3.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/rules2.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/rules1.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/machines/butterfly/lapgen.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/linear.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/regmap.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/lapgn3.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/lapgn2.bin" -- done
+Purify
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/bittop.bin" -- done
+FASLoading-Multiple "/usr/blisp/mach/zcomp/back/bitutl.bin" -- done
+Purify
+Eval "touchify.bin"
+Eval "base/pbs.bin"
+Eval "etc/direct.bin"
+Eval "etc/butils.bin"
+Eval "base/switch.bin"
+Eval "base/macros.bin"
+Eval "base/hashtb.bin"
+Eval "base/decls.bin"
+Eval "base/object.bin"
+Eval "base/enumer.bin"
+Eval "base/queue.bin"
+Eval "base/sets.bin"
+Eval "base/mvalue.bin"
+Eval "base/scode.bin"
+Eval "base/pmlook.bin"
+Eval "base/pmpars.bin"
+Eval "machines/butterfly/machin.bin"
+Eval "base/toplev.bin"
+Eval "base/debug.bin"
+Eval "base/utils.bin"
+Eval "base/cfg1.bin"
+Eval "base/cfg2.bin"
+Eval "base/cfg3.bin"
+Eval "base/ctypes.bin"
+Eval "base/rvalue.bin"
+Eval "base/lvalue.bin"
+Eval "base/blocks.bin"
+Eval "base/proced.bin"
+Eval "base/contin.bin"
+Eval "base/subprb.bin"
+Eval "rtlbase/rgraph.bin"
+Eval "rtlbase/rtlty1.bin"
+Eval "rtlbase/rtlty2.bin"
+Eval "rtlbase/rtlexp.bin"
+Eval "rtlbase/rtlcon.bin"
+Eval "rtlbase/rtlreg.bin"
+Eval "rtlbase/rtlcfg.bin"
+Eval "rtlbase/rtlobj.bin"
+Eval "rtlbase/regset.bin"
+Eval "base/infutl.bin"
+Eval "back/insseq.bin"
+Eval "machines/butterfly/dassm1.bin"
+Eval "machines/butterfly/dassm2.bin"
+Eval "machines/butterfly/dassm3.bin"
+Eval "fggen/fggen.bin"
+Eval "fggen/declar.bin"
+Eval "fgopt/simapp.bin"
+Eval "fgopt/outer.bin"
+Eval "fgopt/folcon.bin"
+Eval "fgopt/operan.bin"
+Eval "fgopt/closan.bin"
+Eval "fgopt/blktyp.bin"
+Eval "fgopt/contan.bin"
+Eval "fgopt/simple.bin"
+Eval "fgopt/order.bin"
+Eval "fgopt/conect.bin"
+Eval "fgopt/desenv.bin"
+Eval "fgopt/offset.bin"
+Eval "rtlgen/rtlgen.bin"
+Eval "rtlgen/rgproc.bin"
+Eval "rtlgen/rgstmt.bin"
+Eval "rtlgen/rgrval.bin"
+Eval "rtlgen/rgcomb.bin"
+Eval "rtlgen/rgretn.bin"
+Eval "rtlgen/fndblk.bin"
+Eval "rtlgen/opncod.bin"
+Eval "machines/butterfly/rgspcm.bin"
+Eval "rtlbase/rtline.bin"
+Eval "rtlopt/rcse1.bin"
+Eval "rtlopt/rcse2.bin"
+Eval "rtlopt/rcseep.bin"
+Eval "rtlopt/rcseht.bin"
+Eval "rtlopt/rcserq.bin"
+Eval "rtlopt/rcsesr.bin"
+Eval "rtlopt/rlife.bin"
+Eval "rtlopt/rdeath.bin"
+Eval "rtlopt/rdebug.bin"
+Eval "rtlopt/ralloc.bin"
+Eval "base/infnew.bin"
+Eval "back/lapgn1.bin"
+Eval "back/lapgn2.bin"
+Eval "back/lapgn3.bin"
+Eval "back/regmap.bin"
+Eval "back/linear.bin"
+Eval "machines/butterfly/lapgen.bin"
+Eval "machines/butterfly/rules1.bin"
+Eval "machines/butterfly/rules2.bin"
+Eval "machines/butterfly/rules3.bin"
+Eval "machines/butterfly/rules4.bin"
+Eval "back/syntax.bin"
+Eval "machines/butterfly/coerce.bin"
+Eval "back/asmmac.bin"
+Eval "machines/butterfly/insmac.bin"
+Eval "machines/butterfly/insutl.bin"
+Eval "machines/butterfly/instr1.bin"
+Eval "machines/butterfly/instr2.bin"
+Eval "machines/butterfly/instr3.bin"
+Eval "machines/butterfly/instr4.bin"
+Eval "machines/butterfly/assmd.bin"
+Eval "back/symtab.bin"
+Eval "back/bitutl.bin"
+Eval "back/bittop.bin"
+Done
+Load bbn inline code files compiled? n
+
+FASLoading-Multiple "/usr/blisp/mach/zcomp/bbn-inline-code.bin" -- done
+Loading "/usr/blisp/mach/zcomp/fltasm.bin"
+
+1 ]=> (disk-save "ifscheme-c.band")
+
+()
+
+1 ]=> (exit)
+mach -> cd /usr/blisp/mach/cl
+mach -> scheme -interpretive -nint 1 -nmem 4 -constant 800 
+Copyright 1989 by BBN Advanced Computers Inc.
+           ALL RIGHTS RESERVED
+  (see /usr/blisp/COPYRIGHT for details)
+Butterfly (r) is a registered trademark of BBN Advanced Computers Inc.
+This file requires -heap 159 -constant 464 -code 1
+Autosizing to -constant 800 -code 64
+There is 1 processor running Lisp
+There are 4 processors being used for memory only
+409600 (0x64000) bytes (100.0KP) of stack will run from 0xf9c000 to 0xfffffc
+3284992 (0x322000) bytes (802.0KP) of constant space will run from 0xc78000 to 0xf9a000
+262144 (0x40000) bytes ( 64.0KP) of code space will run from 0xc30000 to 0xc6fffc
+12017664 (0xb76000) bytes (2934.0KP) of heap space will run from 0xb8000 to 0xc2e000
+3004416 pointers in each heap share
+Input server is process 501
+File server is process 502
+Microcode Version 10.29
+Butterfly Scheme/Common Lisp, unix [mach (butterfly)] version
+Created task 504 on processor 0
+
+Scheme saved on Friday February 10, 1989 at 3:57:35 PM
+  Release 6.2.0
+  Microcode 10.29
+  Runtime 14.80
+  SF 3.15
+  Liar (Butterfly 68020) 4.7
+
+1 ]=> (load "build-cl.scm")
+
+Loading "/usr/blisp/mach/cl/build-cl.scm"
+Loading "/usr/blisp/mach/cl/build-load.bin"
+Load compiled? (y or n): n
+
+;;; Loading "impurify-patch.bin"
+;;; Loading "cl-error-boot.bin"
+;;; Loading "perf.bin"
+;;; Loading "symbol.bin"
+;;; Loading "pkg-extensions.bin"
+;;; Loading "cl-fixobj.bin"
+;;; Loading "cl-kernel.bin"
+;;; Loading "syntax-extensions.bin"
+;;; Loading "errset.bin"
+;;; Loading "values.bin"
+;;; Loading "make-cl-io.bin"
+;;; Loading "cl-parse.bin"
+;;; Loading "cl-readtable.bin"
+;;; Loading "cl-unparse.bin"
+;;; Loading "cl-format.bin"
+;;; Loading "cl-pp.bin"
+;;; Loading "cl-compile-file.bin"
+;;; Loading "boot-np-inline.bin"
+;;; Loading "exported-scheme-builtins.bin"
+;;; Exporting Scheme procedures to Common Lisp...
+;;; 10795 symbols were examined.
+;;; 1327 procedures were exported (264 primitives and 1063 compound procedures)
+;;; Loading "cl-macros.bin"
+;;; Loading "integration-stubs.bin"
+;;; Loading "optimizer-interface.bin"
+;;; Loading "np-inline.bin"
+;;; Loading "initial-optimizers.bin"
+;;; Loading "proclaim.bin"
+;;; Loading "arith.bin"
+;;; Loading "cl-array-prims.bin"
+;;; Loading "localinit.bin"
+;;; Loading "cl-util.bin"
+;;; Loading "cl-util2.bin"
+;;; Loading "clchap5-a.bin"
+;;; Loading "clchap5-b.bin"
+;;; Loading "defun.bin"
+;;; Loading "predicates.bin"
+;;; Loading "clchap7.bin"
+;;; Loading "clchap7b.bin"
+;;; Loading "clchap9.bin"
+;;; Loading "clchap10.bin"
+;;; Warning: redefining function GET
+;;; Loading "clchap5a.bin"
+;;; Loading "arith-constants.bin"
+;;; Expanding (defconstant %FIXNUM-LENGTH)
+;;; Expanding (defconstant MOST-POSITIVE-FIXNUM)
+;;; Expanding (defconstant MOST-NEGATIVE-FIXNUM)
+;;; Expanding (defconstant %SHORT-FLOAT-EXPONENT-LENGTH)
+;;; Expanding (defconstant %SHORT-FLOAT-MANTISSA-LENGTH)
+;;; Expanding (defconstant %SINGLE-FLOAT-EXPONENT-LENGTH)
+;;; Expanding (defconstant %SINGLE-FLOAT-MANTISSA-LENGTH)
+;;; Expanding (defconstant %DOUBLE-FLOAT-EXPONENT-LENGTH)
+;;; Expanding (defconstant %DOUBLE-FLOAT-MANTISSA-LENGTH)
+;;; Expanding (defconstant %LONG-FLOAT-EXPONENT-LENGTH)
+;;; Expanding (defconstant %LONG-FLOAT-MANTISSA-LENGTH)
+;;; Expanding (defconstant PI)
+;;; Expanding (defconstant MOST-POSITIVE-SHORT-FLOAT)
+;;; Expanding (defconstant MOST-NEGATIVE-SHORT-FLOAT)
+;;; Expanding (defconstant LEAST-POSITIVE-SHORT-FLOAT)
+;;; Expanding (defconstant LEAST-NEGATIVE-SHORT-FLOAT)
+;;; Expanding (defconstant SHORT-FLOAT-EPSILON)
+;;; Expanding (defconstant SHORT-FLOAT-NEGATIVE-EPSILON)
+;;; Expanding (defconstant MOST-POSITIVE-SINGLE-FLOAT)
+;;; Expanding (defconstant MOST-NEGATIVE-SINGLE-FLOAT)
+;;; Expanding (defconstant LEAST-POSITIVE-SINGLE-FLOAT)
+;;; Expanding (defconstant LEAST-NEGATIVE-SINGLE-FLOAT)
+;;; Expanding (defconstant SINGLE-FLOAT-EPSILON)
+;;; Expanding (defconstant SINGLE-FLOAT-NEGATIVE-EPSILON)
+;;; Expanding (defconstant MOST-POSITIVE-DOUBLE-FLOAT)
+;;; Expanding (defconstant MOST-NEGATIVE-DOUBLE-FLOAT)
+;;; Expanding (defconstant LEAST-POSITIVE-DOUBLE-FLOAT)
+;;; Expanding (defconstant LEAST-NEGATIVE-DOUBLE-FLOAT)
+;;; Expanding (defconstant DOUBLE-FLOAT-EPSILON)
+;;; Expanding (defconstant DOUBLE-FLOAT-NEGATIVE-EPSILON)
+;;; Expanding (defconstant MOST-POSITIVE-LONG-FLOAT)
+;;; Expanding (defconstant MOST-NEGATIVE-LONG-FLOAT)
+;;; Expanding (defconstant LEAST-POSITIVE-LONG-FLOAT)
+;;; Expanding (defconstant LEAST-NEGATIVE-LONG-FLOAT)
+;;; Expanding (defconstant LONG-FLOAT-EPSILON)
+;;; Expanding (defconstant LONG-FLOAT-NEGATIVE-EPSILON)
+;;; Loading "lambda-constants.bin"
+;;; Expanding (defconstant LAMBDA-PARAMETERS-LIMIT)
+;;; Expanding (defconstant LAMBDA-LIST-KEYWORDS)
+;;; Expanding (defconstant CALL-ARGUMENTS-LIMIT)
+;;; Expanding (defconstant MULTIPLE-VALUES-LIMIT)
+;;; Loading "equalp.bin"
+;;; Loading "clchap13.bin"
+;;; Expanding (defconstant CHAR-CODE-LIMIT)
+;;; Warning: "redefining constant ~a" (CHAR-CODE-LIMIT)
+;;; Expanding (defconstant CHAR-FONT-LIMIT)
+;;; Expanding (defconstant CHAR-BITS-LIMIT)
+;;; Warning: "redefining constant ~a" (CHAR-BITS-LIMIT)
+;;; Expanding (defconstant OTHER-GRAPHIC-CHARS)
+;;; Warning: redefining function MAKE-CHAR
+;;; Expanding (defconstant TOP-CHARACTER-START)
+;;; Expanding (defconstant CHAR-CONTROL-BIT)
+;;; Expanding (defconstant CHAR-META-BIT)
+;;; Expanding (defconstant CHAR-SUPER-BIT)
+;;; Expanding (defconstant CHAR-HYPER-BIT)
+;;; Loading "clchap15.bin"
+;;; Warning: redefining function CDDR
+;;; Warning: redefining function CDAR
+;;; Warning: redefining function CADR
+;;; Warning: redefining function CAAR
+;;; Warning: redefining function CDDDR
+;;; Warning: redefining function CDDAR
+;;; Warning: redefining function CDADR
+;;; Warning: redefining function CDAAR
+;;; Warning: redefining function CADDR
+;;; Warning: redefining function CADAR
+;;; Warning: redefining function CAADR
+;;; Warning: redefining function CAAAR
+;;; Warning: redefining function CDDDDR
+;;; Warning: redefining function CDDDAR
+;;; Warning: redefining function CDDADR
+;;; Warning: redefining function CDDAAR
+;;; Warning: redefining function CDADDR
+;;; Warning: redefining function CDADAR
+;;; Warning: redefining function CDAADR
+;;; Warning: redefining function CDAAAR
+;;; Warning: redefining function CADDDR
+;;; Warning: redefining function CADDAR
+;;; Warning: redefining function CADADR
+;;; Warning: redefining function CADAAR
+;;; Warning: redefining function CAADDR
+;;; Warning: redefining function CAADAR
+;;; Warning: redefining function CAAADR
+;;; Warning: redefining function CAAAAR
+;;; Warning: redefining function SECOND
+;;; Warning: redefining function THIRD
+;;; Warning: redefining function FOURTH
+;;; Warning: redefining function FIFTH
+;;; Warning: redefining function SIXTH
+;;; Warning: redefining function SEVENTH
+;;; Warning: redefining function EIGHTH
+;;; Warning: redefining function MAKE-LIST
+;;; Warning: redefining function COPY-LIST
+;;; Loading "clchap7a.bin"
+;;; Warning: redefining function MAPC
+;;; Warning: redefining function MAPCAR
+;;; Warning: redefining function MAPCAN
+;;; Loading "clchap8-comm.bin"
+;;; Loading "clchap8-a.bin"
+;;; Warning: redefining function PARSE-BODY-INTERNAL
+;;; Loading "clchap8-b-1.bin"
+;;; Loading "clchap8-b-2.bin"
+;;; Loading "clchap8-c.bin"
+;;; Warning: redefining function MACROEXPAND
+;;; Loading "clchap8a.bin"
+;;; Loading "clchap7c-comm.bin"
+;;; Loading "clchap7c-a.bin"
+;;; Loading "clchap7c-b-1.bin"
+;;; Loading "clchap7c-b-2.bin"
+;;; Loading "check-type.bin"
+;;; Loading "clchap7d-a.bin"
+;;; Loading "clchap7d-b.bin"
+;;; Loading "clchap15a.bin"
+;;; Warning: redefining function MEMBER
+;;; Warning: redefining function ASSOC
+;;; Loading "clchap25.bin"
+;;; Expanding (defconstant INTERNAL-TIME-UNITS-PER-SECOND)
+;;; Expanding (defconstant SCHEME-INTERNAL-TIME-UNITS-PER-SECOND)
+;;; Expanding (defconstant CL-GC-KEYS)
+;;; Expanding (defconstant GC-KEY-MAP)
+;;; Warning: redefining function GC-NOTIFICATION-MODE
+;;; Warning: redefining function TIME as a macro
+;;; Warning: redefining function TRACE as a macro
+;;; Warning: redefining function UNTRACE as a macro
+;;; Loading "clchap7e.bin"
+;;; Loading "clchap7f.bin"
+;;; Loading "typespec.bin"
+;;; Expanding (defconstant COMMONLISP-TYPES-VECTOR)
+;;; Warning: redefining function TYPE-EXPAND
+;;; Loading "typep.bin"
+;;; Expanding (defconstant TYPE-PRED-ALIST)
+;;; Warning: redefining function TYPEP
+;;; Loading "cl-array.bin"
+;;; Expanding (defconstant ARRAY-RANK-LIMIT)
+;;; Expanding (defconstant ARRAY-DIMENSION-LIMIT)
+;;; Expanding (defconstant ARRAY-TOTAL-SIZE-LIMIT)
+;;; Warning: redefining function VECTOR
+;;; Loading "cl-coerce.bin"
+;;; Loading "subtypep.bin"
+;;; Expanding (defconstant *SUBTYPE-CACHE-SIZE*)
+;;; Warning: redefining function CLEAR-SUBTYPE-CACHE
+;;; Warning: redefining function SUBTYPEP
+;;; Loading "sequence-simple.bin"
+;;; Warning: redefining function LENGTH
+;;; Warning: redefining function REVERSE
+;;; Warning: redefining function NREVERSE
+;;; Warning: redefining function MAKE-SEQUENCE
+;;; Loading "sequence-map.bin"
+;;; Warning: redefining function MAP
+;;; Loading "sequence-modify.bin"
+;;; Warning: redefining function DELETE
+;;; Loading "sequence-search.bin"
+;;; Loading "sequence-sort.bin"
+;;; Warning: redefining function SORT
+;;; Loading "normalize-type-expr.bin"
+;;; Warning: redefining function NORMALIZE-TYPE-EXPR
+;;; Loading "clchap20.bin"
+;;; Expanding (defconstant COMMONLISP-CONSTANT-VECTOR)
+;;; Loading "cl-array-2.bin"
+;;; Loading "cl-string.bin"
+;;; Warning: redefining function MAKE-STRING
+;;; Warning: redefining function STRING-TRIM
+;;; Warning: redefining function STRING-UPCASE
+;;; Warning: redefining function STRING-DOWNCASE
+;;; Warning: redefining function STRING-CAPITALIZE
+;;; Loading "clchap11.bin"
+;;; Loading "clchap19.bin"
+;;; Loading "clchap16-comm.bin"
+;;; Expanding (defconstant SXHASH-MAX)
+;;; Expanding (defconstant 2^20)
+;;; Loading "clchap16-a-1.bin"
+;;; Loading "clchap16-a-2.bin"
+;;; Loading "clchap16-b.bin"
+;;; Loading "arith-defs-i.bin"
+;;; Loading "arith-defs-j.bin"
+;;; Expanding (defconstant BOOLE-CLR)
+;;; Expanding (defconstant BOOLE-SET)
+;;; Expanding (defconstant BOOLE-1)
+;;; Expanding (defconstant BOOLE-2)
+;;; Expanding (defconstant BOOLE-C1)
+;;; Expanding (defconstant BOOLE-C2)
+;;; Expanding (defconstant BOOLE-AND)
+;;; Expanding (defconstant BOOLE-IOR)
+;;; Expanding (defconstant BOOLE-XOR)
+;;; Expanding (defconstant BOOLE-EQV)
+;;; Expanding (defconstant BOOLE-NAND)
+;;; Expanding (defconstant BOOLE-NOR)
+;;; Expanding (defconstant BOOLE-ANDC1)
+;;; Expanding (defconstant BOOLE-ANDC2)
+;;; Expanding (defconstant BOOLE-ORC1)
+;;; Expanding (defconstant BOOLE-ORC2)
+;;; Loading "arith-defs-k.bin"
+;;; Expanding (defconstant RANDOM-CONST-A)
+;;; Expanding (defconstant RANDOM-CONST-C)
+;;; Expanding (defconstant RANDOM-UPPER-BOUND)
+;;; Expanding (defconstant RANDOM-MAX)
+;;; Warning: redefining function RANDOM
+;;; Loading "filesys.bin"
+;;; Warning: redefining function MERGE-PATHNAMES
+;;; Warning: redefining function MAKE-PATHNAME
+;;; Warning: redefining function PATHNAME-HOST
+;;; Warning: redefining function PATHNAME-DEVICE
+;;; Warning: redefining function PATHNAME-DIRECTORY
+;;; Warning: redefining function PATHNAME-NAME
+;;; Warning: redefining function PATHNAME-TYPE
+;;; Warning: redefining function PATHNAME-VERSION
+;;; Warning: redefining function RENAME-FILE
+;;; Warning: redefining function DELETE-FILE
+;;; Loading "stream-interface.bin"
+;;; Warning: redefining function WITH-INPUT-FROM-STRING as a macro
+;;; Warning: redefining function WITH-OUTPUT-TO-STRING as a macro
+;;; Expanding (defconstant OPEN-KEY-TABLE)
+;;; Loading "reader-interface.bin"
+;;; Warning: redefining function READ
+;;; Loading "printer-interface.bin"
+;;; Warning: redefining function WRITE
+;;; Warning: redefining function PRIN1
+;;; Warning: redefining function PRINT
+;;; Warning: redefining function PRINC
+;;; Warning: redefining function TERPRI
+;;; Warning: redefining function WRITE-TO-STRING
+;;; Loading "error.bin"
+;;; Warning: redefining function ERROR
+;;; Warning: redefining function CERROR
+;;; Warning: redefining function WARN
+;;; Warning: redefining function BREAK
+;;; Loading "cl-errset.bin"
+;;; Loading "modules.bin"
+;;; Loading "parallel.bin"
+;;; Warning: redefining function GLOBAL-INTERRUPT as a macro
+;;; Loading "misc-exports.bin"
+;;; Loading "package-common.bin"
+;;; Loading "package-a.bin"
+;;; Loading "package-b.bin"
+;;; Loading "package-c.bin"
+;;; Warning: redefining function INTERN
+;;; Loading "package-d.bin"
+;;; Warning: redefining function EXPORT
+;;; Loading "package-e.bin"
+;;; Loading "system-config.bin"
+;;; Loading "system-init.bin"
+;;; Loading "cl-fluids.bin"
+;;; Loading "setup-packages.bin"
+;;; Time to export LISP package symbols: 417.733
+
+;;; Expanding (defmacro QUASIQUOTE)
+;;;
+;;; Be sure to do the following things by hand:
+;;;
+
+(cl-mode -cl-io #t) (proclaim '(insert-touches t)) (proclaim '(lr-evaluation t)) (disk-save "icl-c.band" "Butterfly Common Lisp")
+
+
+()
+
+USER]=> (cl-mode -cl-io #t)
+
+NIL 
+
+USER]=> (proclaim '(insert-touches t))
+
+NIL 
+
+USER]=> (proclaim '(lr-evaluation t))
+
+NIL 
+
+USER]=> (disk-save "icl-c.band" "Butterfly Common Lisp")
+
+NIL 
+
+USER]=> (exit)
+mach -> 

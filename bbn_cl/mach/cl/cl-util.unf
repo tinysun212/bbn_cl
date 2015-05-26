@@ -1,0 +1,10 @@
+
+(DATE (88 1 13) (16 24 46))
+(FLUID-LET SHALLOW)
+(SOURCE-FILE "/nfs/lisperanto/u1/las/cl/cl-util.scm")
+(BINARY-FILE "/nfs/lisperanto/u1/las/cl/cl-util.bin")
+("Read" (RUNTIME .36))
+("Syntax" (RUNTIME 1.7))
+("Transform" (RUNTIME 128.2))
+("Optimize" (RUNTIME 1.42))
+("Generate SCode" (RUNTIME 2.73))

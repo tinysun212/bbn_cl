@@ -1,0 +1,2369 @@
+;;;                                ********
+;;;
+;;; Copyright 1992 by BBN Systems and Technologies, A division of Bolt,
+;;; Beranek and Newman Inc.
+;;; 
+;;; Permission to use, copy, modify and distribute this software and its
+;;; documentation is hereby granted without fee, provided that the above
+;;; copyright notice and this permission appear in all copies and in
+;;; supporting documentation, and that the name Bolt, Beranek and Newman
+;;; Inc. not be used in advertising or publicity pertaining to distribution
+;;; of the software without specific, written prior permission.  In
+;;; addition, BBN makes no respresentation about the suitability of this
+;;; software for any purposes.  It is provided "AS IS" without express or
+;;; implied warranties including (but not limited to) all implied warranties
+;;; of merchantability and fitness.  In no event shall BBN be liable for any
+;;; special, indirect or consequential damages whatsoever resulting from
+;;; loss of use, data or profits, whether in an action of contract,
+;;; negligence or other tortuous action, arising out of or in connection
+;;; with the use or performance of this software.
+;;; 
+;;;                                 ********
+;;; 
+;;;regblock_memtop	=	0
+regblock_stackguard	=	4
+regblock_val	=	8
+regblock_env	=	12
+regblock_temp	=	16
+regblock_expr	=	20
+regblock_return	=	24
+regblock_lexpr_actuals	=	28
+regblock_temporaries	=	40
+regblock_ntemps	=	50
+regblock_hooks	=	(regblock_temporaries + (regblock_ntemps * 4))
+regblock_nhooks	=	10
+offset_return_to_interpreter	=	regblock_hooks
+offset_operator_lookup_trap	=	(offset_return_to_interpreter + 6)
+offset_operator_interpreted_trap	=	(offset_operator_lookup_trap + 6)
+offset_operator_arity_trap	=	(offset_operator_interpreted_trap + 6)
+offset_operator_apply_trap	=	(offset_operator_arity_trap + 6)
+regblock_entries	=	(regblock_hooks + (regblock_nhooks * 6))
+regblock_nentries	=	50
+regblock_length	=	(regblock_entries + (regblock_nentries * 6))
+prim_done	=	-1
+prim_do_expression	=	-2
+prim_apply	=	-3
+prim_interrupt	=	-4
+prim_no_trap_eval	=	-5
+prim_no_trap_apply	=	-6
+prim_pop_return	=	-7
+prim_touch	=	-8
+prim_apply_interrupt	=	-9
+primitive_index_mask	=	0x00000fff
+tc_null	=	0x00
+tc_manifest_vector	=	0x00
+tc_list	=	0x01
+tc_flonum	=	0x06
+tc_true	=	0x08
+tc_vector	=	0x0a
+tc_return_code	=	0x0b
+tc_manifest_closure	=	0x0d
+tc_environment	=	0x12
+tc_fixnum	=	0x1a
+tc_hunk3	=	0x24
+tc_manifest_nm_vector	=	0x27
+tc_compiled_entry	=	0x28
+tc_reference_trap	=	0x32
+tc_quad	=	0x38
+tc_linkage_section	=	0x39
+tc_stack_environment	=	0x3b
+tc_compiled_code_block	=	0x3d
+err_unbound_variable	=	0x01
+err_unassigned_variable	=	0x02
+err_inapplicable_object	=	0x03
+err_wrong_number_of_arguments	=	0x0c
+err_compiled_code_error	=	0x31
+err_unimplemented_primitive	=	0x33
+int_gc_bit	=	2
+fobject_compiler_error_procedure	=	0x21*4
+rc_comp_reference_restart	=	0x1f
+rc_comp_assignment_restart	=	0x28
+rc_comp_interrupt_restart	=	0x43
+rc_comp_lookup_apply_restart	=	0x4b
+rc_comp_access_restart	=	0x4c
+rc_comp_unassigned_p_restart	=	0x4d
+rc_comp_unbound_p_restart	=	0x4e
+rc_comp_definition_restart	=	0x4f
+rc_comp_safe_reference_restart	=	0x51
+rc_comp_lookup_trap_restart	=	0x53
+rc_comp_assignment_trap_restart	=	0x54
+rc_comp_op_lookup_trap_restart	=	0x56
+rc_comp_cache_lookup_apply_restart	=	0x57
+rc_comp_safe_lookup_trap_restart	=	0x58
+rc_comp_unassigned_p_trap_restart	=	0x59
+rc_comp_link_caches_restart	=	0x5b
+trap_unassigned	=	0
+trap_max_immediate	=	9
+trap_fluid	=	12
+	.data
+	.globl	_Registers	
+_Registers:	
+	.skip	regblock_length	
+	.globl	_compiler_utilities	
+_compiler_utilities:	
+	.skip	4	
+	.globl	_compiler_interface_version	
+_compiler_interface_version:	
+	.skip	4	
+	.globl	_compiler_processor_type	
+_compiler_processor_type:	
+	.skip	4	
+	.globl	_return_to_interpreter	
+_return_to_interpreter:	
+	.skip	4	
+	.globl	c_save_stack	
+c_save_stack:	
+	.skip	4	
+	.globl	data_patch_area	
+data_patch_area:	
+	.skip	64	
+	.text
+	.globl	code_patch_area	
+code_patch_area:	
+	.skip	256	
+	.globl	_return_to_compiled_code	
+_return_to_compiled_code:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+	.globl	_enter_compiled_expression	
+_enter_compiled_expression:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a6@(regblock_expr),d0	
+	andl	d7,d0	
+	movl	d0,a0	
+	cmpw	#0xffff,a0@(-4)	
+	bnes	self_evaluate	
+	jmp	a0@	
+self_evaluate:	
+	movl	a6@(regblock_expr),d0	
+	movl	d0,a6@(regblock_val)	
+	clrb	a7@	
+	rts
+	.globl	comentry_return_to_interpreter	
+comentry_return_to_interpreter:	
+	moveq	#prim_done,d0	
+	.globl	return_to_interpreter	
+return_to_interpreter:	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	moveml	a7@+,d2-d7/a2-a6	
+	rts
+	.globl	return_to_interpreter_error	
+return_to_interpreter_error:	
+	movl	_compiled_code_error_code,d0	
+	tstl	d0	
+	blts	return_to_interpreter	
+	movl	#err_compiled_code_error,d0	
+	bras	return_to_interpreter	
+	.globl	comentry_error	
+comentry_error:	
+	movl	d0,a7@-	
+	jsr	_Compiler_Get_Fixed_Objects	
+	movl	d0,d1	
+	movl	a7@+,d0	
+	andl	d7,d1	
+	movl	d1,a0	
+	movl	a0@(fobject_compiler_error_procedure),a7@-	
+	.globl	comentry_apply	
+comentry_apply:	
+	cmpb	#tc_compiled_entry,a7@	
+	beqs	apply_compiled_procedure_1	
+comentry_apply_interpreted:	
+	extl	d0	
+	movl	d0,a7@-	
+	moveq	#prim_apply,d0	
+	bra	return_to_interpreter	
+	.globl	comentry_lexpr_apply	
+comentry_lexpr_apply:	
+	movb	a0@(-3),d1	
+	extw	d1	
+	bra	invoke_lexpr	
+	.globl	_apply_compiled_procedure	
+_apply_compiled_procedure:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@+,d0	
+	.globl	apply_compiled_procedure_1	
+apply_compiled_procedure_1:	
+	movl	a7@+,d1	
+	.globl	apply_compiled_procedure_2	
+apply_compiled_procedure_2:	
+	andl	d7,d1	
+	movl	d1,a0	
+	.globl	apply_compiled_procedure_3	
+apply_compiled_procedure_3:	
+	movb	a0@(-3),d1	
+	extw	d1	
+	cmpw	d1,d0	
+	bnes	max_argument_mismatch	
+	jmp	a0@	
+not_a_procedure:	
+	pea	a0@	
+	movb	#tc_compiled_entry,a7@	
+	extl	d0	
+	movl	d0,a7@-	
+	movl	#err_inapplicable_object,d0	
+	bra	return_to_interpreter	
+too_many_arguments:	
+too_few_arguments:	
+	pea	a0@	
+	movb	#tc_compiled_entry,a7@	
+	extl	d0	
+	movl	d0,a7@-	
+	movl	#err_wrong_number_of_arguments,d0	
+	bra	return_to_interpreter	
+max_argument_mismatch:	
+	movb	a0@(-4),d2	
+	bmis	not_a_procedure	
+	extw	d2	
+	cmpw	d2,d0	
+	blts	too_few_arguments	
+	.globl	invoke_lexpr	
+invoke_lexpr:	
+	movw	d0,d2	
+	subw	d1,d2	
+	bgts	too_many_arguments_or_lexpr	
+	pea	a0@	
+	.globl	open_gap	
+open_gap:	
+	lea	a7@(0,d2:w:4),a1	
+	exg	a1,sp	
+	movl	sp,a2	
+	subqw	#1,d0	
+open_optionals_gap_loop:	
+	movl	a1@+,a2@+	
+	dbf	d0,open_optionals_gap_loop	
+	movl	#tc_reference_trap*0x1000000+0,d0	
+	negw	d2	
+	subqw	#1,d2	
+fill_optionals_loop:	
+	movl	d0,a2@+	
+	dbf	d2,fill_optionals_loop	
+	rts
+too_many_arguments_or_lexpr:	
+	negw	d1	
+	bmis	too_many_arguments	
+	movw	d0,d2	
+	subw	d1,d2	
+	bgts	cons_up_tail	
+	beqs	cons_singleton	
+	bsrs	open_gap	
+	movl	#tc_null*0x1000000+0,a2@(-4)	
+	jmp	a0@	
+cons_singleton:	
+	lea	a7@(-8,d0:w:4),a1	
+	movl	a5,d1	
+	movl	a1@,a5@+	
+	movl	#tc_null*0x1000000+0,a5@+	
+	movl	d1,a1@	
+	movb	#tc_list,a1@	
+	jmp	a0@	
+cons_up_tail:	
+	lea	a5@(8,d2:w:8),a1	
+	cmpl	a6@(regblock_memtop),a1	
+	bges	cons_tail_interrupt	
+cons_up_continue:	
+	movl	a1,a5	
+	lea	a7@(-4,d0:w:4),a2	
+	movl	a2,a3	
+	movl	#tc_null*0x1000000+0,a1@-	
+	subqw	#1,d2	
+cons_tail_loop:	
+	movl	a2@-,a1@-	
+	movl	a1,a1@-	
+	movb	#tc_list,a1@	
+	dbf	d2,cons_tail_loop	
+	movl	a2@-,a1@-	
+	movl	a1,a2@	
+	movb	#tc_list,a2@	
+	addql	#4,a2	
+	subqw	#2,d1	
+close_gap_loop:	
+	movl	a2@-,a3@-	
+	dbf	d1,close_gap_loop	
+	movl	a3,sp	
+	jmp	a0@	
+cons_tail_interrupt:	
+	tstb	a6@(regblock_memtop)	
+	bmis	cons_tail_backout	
+	bset	#int_gc_bit,_IntCode+3	
+	btst	#int_gc_bit,_IntEnb+3	
+	beqs	cons_up_continue	
+cons_tail_backout:	
+	pea	a0@	
+	movb	#tc_compiled_entry,a7@	
+	extl	d0	
+	movl	d0,a7@-	
+	movl	#prim_apply_interrupt,d0	
+	bra	return_to_interpreter	
+	.globl	compiled_entry_to_block	
+compiled_entry_to_block:	
+	andl	#0xffffff,d1	
+	movl	d1,a0	
+	bras	enter_compiled_entry_to_block_loop	
+compiled_entry_to_block_loop:	
+	lea	a0@(1),a0	
+enter_compiled_entry_to_block_loop:	
+	movw	a0@(-2),d1	
+	subw	d1,a0	
+	lsrw	#1,d1	
+	bcss	compiled_entry_to_block_loop	
+	rts
+	.globl	_compiled_block_environment	
+_compiled_block_environment:	
+	movl	a7@(4),d0	
+	andl	#0xffffff,d0	
+	movl	d0,a0	
+	movl	a0@,d0	
+	andl	#0xffffff,d0	
+	movl	a0@(0,d0:l:4),d0	
+	rts
+	.globl	_compiled_entry_to_block_address	
+_compiled_entry_to_block_address:	
+	movl	a7@(4),d1	
+	bsr	compiled_entry_to_block	
+	movl	a0,d0	
+	rts
+	.globl	_compiled_entry_to_block_offset	
+_compiled_entry_to_block_offset:	
+	movl	a7@(4),d1	
+	bsr	compiled_entry_to_block	
+	movl	a7@(4),d0	
+	andl	#0xffffff,d0	
+	subl	a0,d0	
+	rts
+	.globl	_compiled_entry_type	
+_compiled_entry_type:	
+	movl	d2,a7@-	
+	movl	a7@(12),a0	
+	movl	a7@(8),d0	
+	andl	#0xffffff,d0	
+	movl	d0,a1	
+	clrl	d0	
+	movb	a1@(-3),d2	
+	extbl	d2	
+	movb	a1@(-4),d1	
+	extbl	d1	
+	bges	kind_computed	
+	addql	#1,d0	
+	cmpb	#0xff,d1	
+	bnes	kind_computed	
+	clrl	d1	
+	addql	#1,d0	
+	cmpb	#0xff,d2	
+	beqs	kind_trivial	
+	addql	#1,d0	
+kind_trivial:	
+	clrl	d2	
+kind_computed:	
+	movl	d0,a0@+	
+	movl	d1,a0@+	
+	movl	d2,a0@	
+	movl	a7@+,d2	
+	rts
+	.globl	_extract_variable_cache	
+_extract_variable_cache:	
+	movl	a7@(4),d0	
+	andl	#0xffffff,d0	
+	movl	d0,a0	
+	movl	a7@(8),d0	
+	movl	a0@(0,d0:l:4),a7@-	
+	movb	#tc_quad,a7@	
+	movl	a7@+,d0	
+	rts
+	.globl	_real_store_variable_cache	
+_real_store_variable_cache:	
+	movl	a7@(8),d0	
+	andl	#0xffffff,d0	
+	movl	d0,a0	
+	movl	a7@(12),d0	
+	movl	a7@(4),d1	
+	andl	#0x00ffffff,d1	
+	movl	d1,a0@(0,d0:l:4)	
+	rts
+	.globl	_extract_uuo_link	
+_extract_uuo_link:	
+	movl	a7@(4),d0	
+	andl	#0xffffff,d0	
+	movl	d0,a0	
+	movl	a7@(8),d0	
+	movl	a0@(2,d0:l:4),a7@-	
+	movb	#tc_compiled_entry,a7@	
+	movl	a7@+,d0	
+	rts
+	.globl	comentry_operator_apply_trap	
+comentry_operator_apply_trap:	
+	movl	a7@,a0	
+	movl	a0@,a7@	
+	clrw	d0	
+	movb	a0@(-8),d0	
+	bra	comentry_apply	
+	.globl	comentry_operator_arity_trap	
+comentry_operator_arity_trap:	
+	movl	a7@+,a0	
+	movl	a7@+,a1	
+	movw	a1@,d0	
+	movl	a0@,d1	
+	bra	apply_compiled_procedure_2	
+	.globl	comentry_operator_interpreted_trap	
+comentry_operator_interpreted_trap:	
+	movl	a7@+,a0	
+	movl	a7@,a1	
+	movw	a1@,d0	
+	movl	a0@,a7@	
+	extl	d0	
+	movl	d0,a7@-	
+	moveq	#prim_apply,d0	
+	bra	return_to_interpreter	
+	.globl	_coerce_to_compiled	
+_coerce_to_compiled:	
+	movl	a7@(12),a0	
+	cmpb	#tc_compiled_entry,a7@(4)	
+	bnes	coerce_to_compiled_invoke_apply	
+	movl	a7@(4),d0	
+	andl	#0x00ffffff,d0	
+	movl	d0,a1	
+	movb	a1@(-3),d0	
+	extbl	d0	
+	subql	#1,d0	
+	cmpl	a7@(8),d0	
+	bnes	coerce_to_compiled_invoke_apply	
+	movl	a7@(4),a0@	
+	moveq	#prim_done,d0	
+	rts
+coerce_to_compiled_too_large:	
+	moveq	#err_wrong_number_of_arguments,d0	
+	rts
+coerce_to_compiled_invoke_apply:	
+	moveq	#5,d0	
+	bsr	allocate_heap_fake_operator	
+	tstl	d0	
+	beqs	coerce_to_compiled_interrupt	
+	movl	a7@(8),d0	
+	addql	#1,d0	
+	movb	d0,d1	
+	bmis	coerce_to_compiled_too_large	
+	lsll	#8,d1	
+	movb	d0,d1	
+	movl	#tc_manifest_vector*0x1000000+4,a1@+	
+	movl	#tc_manifest_nm_vector*0x1000000+2,a1@+	
+	movw	d1,a1@+	
+	movw	#0x000c,a1@+	
+	movl	a1,a0@	
+	movb	#tc_compiled_entry,a0@	
+	movw	#0x4eae,a1@+	
+	movw	#offset_operator_apply_trap,a1@+	
+	movl	a7@(4),a1@	
+	moveq	#prim_done,d0	
+	rts
+coerce_to_compiled_interrupt:	
+	moveq	#prim_interrupt,d0	
+	rts
+	.globl	allocate_constant_fake_operator	
+allocate_constant_fake_operator:	
+	movl	a0,a7@-	
+	movl	d0,a7@-	
+	jsr	_Atomic_Allocate	
+	addql	#4,sp	
+	movl	a7@+,a0	
+	tstl	d0	
+	bnes	allocate_constant_continue	
+	bset	#int_gc_bit,_IntCode+3	
+	lea	_Registers,a1	
+	movl	#-1,a1@(regblock_memtop)	
+	clrl	d0	
+	rts
+allocate_constant_continue:	
+	movl	d0,a1	
+	moveq	#1,d0	
+	rts
+	.globl	allocate_heap_fake_operator	
+allocate_heap_fake_operator:	
+	movl	_Free,a1	
+	cmpl	_MemTop,a1	
+	blts	allocate_heap_succeed	
+	bset	#int_gc_bit,_IntCode+3	
+	btst	#int_gc_bit,_IntEnb+3	
+	bnes	allocate_heap_succeed	
+	lea	_Registers,a1	
+	movl	#-1,a1@(regblock_memtop)	
+	clrl	d0	
+	rts
+allocate_heap_succeed:	
+	pea	a1@(0,d0:l:4)	
+	movl	a7@+,_Free	
+	moveq	#1,d0	
+	rts
+	.globl	allocate_fake_operator	
+allocate_fake_operator:	
+	movl	d0,a7@-	
+	movl	a0,a7@-	
+	movl	a0,a7@-	
+	jsr	_unsafe_to_link_test	
+	addql	#4,sp	
+	movl	d0,d1	
+	movl	a7@+,a0	
+	movl	a7@+,d0	
+	tstl	d1	
+	bne	allocate_constant_fake_operator	
+	bra	allocate_heap_fake_operator	
+	.globl	_fake_uuo_link_p	
+_fake_uuo_link_p:	
+	movl	a7@(4),d0	
+	andl	#0x00ffffff,d0	
+	movl	d0,a0	
+	movl	#0xfffd000c,d0	
+	cmpl	a0@(-4),d0	
+	bnes	not_fake_uuo_link_p	
+	movl	a7@(8),d0	
+	cmpl	a0@(4),d0	
+	bnes	not_fake_uuo_link_p	
+	moveq	#1,d0	
+	rts
+not_fake_uuo_link_p:	
+	clrl	d0	
+	rts
+	.globl	_real_make_uuo_link	
+_real_make_uuo_link:	
+	movl	a7@(12),d0	
+	andl	#0x00ffffff,d0	
+	movl	d0,a0	
+	movl	a7@(16),d0	
+	lea	a0@(0,d0:l:4),a0	
+	cmpb	#tc_compiled_entry,a7@(4)	
+	bne	make_uuo_link_1	
+	movl	a7@(4),d0	
+	andl	#0x00ffffff,d0	
+	movl	d0,a1	
+	movb	a1@(-3),d0	
+	extw	d0	
+	cmpw	a0@(6),d0	
+	bnes	make_uuo_link_2	
+	pea	a0@	
+	pea	a1@	
+	movl	a1,a7@-	
+	jsr	_constant_test	
+	addql	#4,sp	
+	tstl	d0	
+	beqs	make_uuo_link_3	
+	.globl	make_uuo_link_continue	
+make_uuo_link_continue:	
+	movl	a7@+,a1	
+	movl	a7@+,a0	
+	movw	#0x4ef9,a0@+	
+	movl	a1,a0@	
+	moveq	#prim_done,d0	
+	rts
+	.globl	make_uuo_link_interrupt	
+make_uuo_link_interrupt:	
+	moveq	#prim_interrupt,d0	
+	rts
+	.globl	make_uuo_link_3	
+make_uuo_link_3:	
+	movl	a7@(4),a0	
+	movl	a0,a7@-	
+	jsr	_unsafe_to_link_test	
+	addql	#4,sp	
+	tstl	d0	
+	beqs	make_uuo_link_continue	
+	movl	a7@+,a1	
+	movl	a7@+,a0	
+	moveq	#4,d0	
+	bsr	allocate_constant_fake_operator	
+	tstl	d0	
+	beq	make_uuo_link_interrupt	
+	movw	a0@(6),d0	
+	movw	d0,d1	
+	lsll	#8,d1	
+	movb	d0,d1	
+	movw	#0x4ef9,a0@+	
+	movl	#tc_manifest_closure*0x1000000+3,a1@+	
+	movw	d1,a1@+	
+	movw	#8,a1@+	
+	movl	a1,a0@	
+	movw	#0x4ef9,a1@+	
+	movl	a7@(4),a1@+	
+	clrb	a1@(-4)	
+	clrw	a1@	
+	moveq	#prim_done,d0	
+	rts
+	.globl	make_uuo_link_2	
+make_uuo_link_2:	
+	movw	#offset_operator_arity_trap,d1	
+	bras	make_simple_fake_operator	
+	.globl	make_uuo_link_1	
+make_uuo_link_1:	
+	movw	#offset_operator_interpreted_trap,d1	
+	.globl	make_simple_fake_operator	
+make_simple_fake_operator:	
+	movl	d1,a7@-	
+	moveq	#5,d0	
+	bsr	allocate_fake_operator	
+	movl	a7@+,d1	
+	tstl	d0	
+	beq	make_uuo_link_interrupt	
+	movw	#0x4eb9,a0@+	
+	movl	#tc_manifest_vector*0x1000000+4,a1@+	
+	movl	#tc_manifest_nm_vector*0x1000000+2,a1@+	
+	movl	#0xfffd000c,a1@+	
+	movl	a1,a0@	
+	movw	#0x4eae,a1@+	
+	movw	d1,a1@+	
+	movl	a7@(4),a1@	
+	moveq	#prim_done,d0	
+	rts
+	.globl	_real_make_fake_uuo_link	
+_real_make_fake_uuo_link:	
+	movl	a7@(8),d0	
+	andl	#0x00ffffff,d0	
+	movl	d0,a0	
+	movl	a7@(12),d0	
+	lea	a0@(0,d0:l:4),a0	
+	moveq	#7,d0	
+	bsr	allocate_fake_operator	
+	tstl	d0	
+	beqs	make_fake_uuo_link_interrupt	
+	movw	#0x4eb9,a0@+	
+	movl	#tc_manifest_vector*0x1000000+6,a1@+	
+	movl	#tc_manifest_nm_vector*0x1000000+2,a1@+	
+	movl	#0xfffd000c,a1@+	
+	movl	a1,a0@	
+	movw	#0x4eae,a1@+	
+	movw	#offset_operator_lookup_trap,a1@+	
+	movl	a7@(4),a1@+	
+	movl	a7@(8),a1@+	
+	movl	a7@(12),a1@	
+	movb	#tc_fixnum,a1@	
+	moveq	#prim_done,d0	
+	rts
+	.globl	make_fake_uuo_link_interrupt	
+make_fake_uuo_link_interrupt:	
+	moveq	#prim_interrupt,d0	
+	rts
+	.globl	_comp_interrupt_restart	
+_comp_interrupt_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@+,d0	
+	movl	d0,a6@(regblock_val)	
+	movl	d0,a6@(regblock_env)	
+	andl	d7,d0	
+	movl	d0,a4	
+	clrb	a7@	
+	rts
+	.globl	ignore_interrupt_normal	
+ignore_interrupt_normal:	
+	addql	#4,sp	
+	clrb	a7@	
+	movl	a7@+,a0	
+	jmp	a0@(4)	
+	.globl	ignore_interrupt_closure	
+ignore_interrupt_closure:	
+	addql	#4,sp	
+	movl	a7@,d0	
+	andl	d7,d0	
+	movl	d0,a0	
+	movl	a0@(2),a0	
+	jmp	a0@(10)	
+	.globl	comentry_interrupt_closure	
+comentry_interrupt_closure:	
+	movl	#tc_null*0x1000000+0,a7@-	
+	lea	ignore_interrupt_closure,a0	
+	bras	comentry_interrupt_common	
+	.globl	comentry_interrupt_continuation	
+comentry_interrupt_continuation:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a6@(regblock_val),a7@-	
+	lea	ignore_interrupt_normal,a0	
+	bras	comentry_interrupt_common	
+	.globl	comentry_interrupt_ic_procedure	
+comentry_interrupt_ic_procedure:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a6@(regblock_env),a7@-	
+	lea	ignore_interrupt_normal,a0	
+	bras	comentry_interrupt_common	
+	.globl	comentry_interrupt_procedure	
+comentry_interrupt_procedure:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a4,a7@-	
+	lea	ignore_interrupt_normal,a0	
+	tstb	a7@	
+	bnes	interrupt_no_dlink	
+	movb	#tc_stack_environment,a7@	
+	cmpl	sp,a4	
+	blss	interrupt_no_dlink	
+	cmpl	_Stack_Top,a4	
+	bccs	interrupt_no_dlink	
+	movl	a4,d1	
+	subl	sp,d1	
+	andl	#0x00000003,d1	
+	beqs	comentry_interrupt_common	
+interrupt_no_dlink:	
+	movl	#tc_null*0x1000000+0,a7@	
+	.globl	comentry_interrupt_common	
+comentry_interrupt_common:	
+	tstb	a6@(regblock_memtop)	
+	bmis	comentry_interrupt	
+	bset	#int_gc_bit,_IntCode+3	
+	btst	#int_gc_bit,_IntEnb+3	
+	bnes	comentry_interrupt_common_1	
+	jmp	a0@	
+comentry_interrupt_common_1:	
+	movl	#-1,a6@(regblock_memtop)	
+	.globl	comentry_interrupt	
+comentry_interrupt:	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_interrupt_restart,a7@-	
+	moveq	#prim_interrupt,d0	
+	bra	return_to_interpreter	
+	.globl	comentry_lookup_apply	
+comentry_lookup_apply:	
+	extl	d0	
+	movl	d0,a7@-	
+	movl	d5,a7@-	
+	movl	d4,a7@-	
+comentry_lookup_apply_1:	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	d5,a7@-	
+	movl	d4,a7@-	
+	jsr	_Lex_Ref	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_lookup_apply_error	
+	addql	#8,sp	
+	movl	a7@,d0	
+	movl	a6@(regblock_val),a7@	
+	bra	comentry_apply	
+comentry_lookup_apply_error:	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_lookup_apply_restart,a7@-	
+	movl	d0,_compiled_code_error_code	
+	bra	return_to_interpreter_error	
+	.globl	_comp_lookup_apply_restart	
+_comp_lookup_apply_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@,d4	
+	movl	a7@(4),d5	
+	bra	comentry_lookup_apply_1	
+	.globl	comentry_reference	
+comentry_reference:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+comentry_reference_1:	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+	jsr	_Lex_Ref	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_reference_error	
+	addql	#8,sp	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+comentry_reference_error:	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_reference_restart,a7@-	
+	movl	d0,_compiled_code_error_code	
+	bra	return_to_interpreter_error	
+	.globl	_comp_reference_restart	
+_comp_reference_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@,a0	
+	movl	a7@(4),a1	
+	movl	a0,a6@(regblock_env)	
+	bra	comentry_reference_1	
+	.globl	comentry_safe_reference	
+comentry_safe_reference:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+comentry_safe_reference_1:	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+	jsr	_safe_lex_ref	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_safe_reference_error	
+	addql	#8,sp	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+comentry_safe_reference_error:	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_safe_reference_restart,a7@-	
+	movl	d0,_compiled_code_error_code	
+	bra	return_to_interpreter_error	
+	.globl	_comp_safe_reference_restart	
+_comp_safe_reference_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@,a0	
+	movl	a7@(4),a1	
+	movl	a0,a6@(regblock_env)	
+	bra	comentry_safe_reference_1	
+	.globl	comentry_access	
+comentry_access:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+comentry_access_1:	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+	jsr	_Symbol_Lex_Ref	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_access_error	
+	addql	#8,sp	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+comentry_access_error:	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_access_restart,a7@-	
+	movl	d0,_compiled_code_error_code	
+	bra	return_to_interpreter_error	
+	.globl	_comp_access_restart	
+_comp_access_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@,a0	
+	movl	a7@(4),a1	
+	movl	a0,a6@(regblock_env)	
+	bra	comentry_access_1	
+	.globl	comentry_unassigned_p	
+comentry_unassigned_p:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+comentry_unassigned_p_1:	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+	jsr	_Symbol_Lex_unassigned_p	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_unassigned_p_error	
+	addql	#8,sp	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+comentry_unassigned_p_error:	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_unassigned_p_restart,a7@-	
+	movl	d0,_compiled_code_error_code	
+	bra	return_to_interpreter_error	
+	.globl	_comp_unassigned_p_restart	
+_comp_unassigned_p_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@,a0	
+	movl	a7@(4),a1	
+	movl	a0,a6@(regblock_env)	
+	bra	comentry_unassigned_p_1	
+	.globl	comentry_unbound_p	
+comentry_unbound_p:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+comentry_unbound_p_1:	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+	jsr	_Symbol_Lex_unbound_p	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_unbound_p_error	
+	addql	#8,sp	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+comentry_unbound_p_error:	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_unbound_p_restart,a7@-	
+	movl	d0,_compiled_code_error_code	
+	bra	return_to_interpreter_error	
+	.globl	_comp_unbound_p_restart	
+_comp_unbound_p_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@,a0	
+	movl	a7@(4),a1	
+	movl	a0,a6@(regblock_env)	
+	bra	comentry_unbound_p_1	
+	.globl	comentry_assignment	
+comentry_assignment:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a2,a7@-	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+comentry_assignment_1:	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a2,a7@-	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+	jsr	_Lex_Set	
+	lea	a7@(12),sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_assignment_error	
+	lea	a7@(12),sp	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+comentry_assignment_error:	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_assignment_restart,a7@-	
+	movl	d0,_compiled_code_error_code	
+	bra	return_to_interpreter_error	
+	.globl	_comp_assignment_restart	
+_comp_assignment_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@,a0	
+	movl	a7@(4),a1	
+	movl	a7@(8),a2	
+	movl	a0,a6@(regblock_env)	
+	bra	comentry_assignment_1	
+	.globl	comentry_definition	
+comentry_definition:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a2,a7@-	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+comentry_definition_1:	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a2,a7@-	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+	jsr	_Local_Set	
+	lea	a7@(12),sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_definition_error	
+	lea	a7@(12),sp	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+comentry_definition_error:	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_definition_restart,a7@-	
+	movl	d0,_compiled_code_error_code	
+	bra	return_to_interpreter_error	
+	.globl	_comp_definition_restart	
+_comp_definition_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@,a0	
+	movl	a7@(4),a1	
+	movl	a7@(8),a2	
+	movl	a0,a6@(regblock_env)	
+	bra	comentry_definition_1	
+	.globl	comentry_lookup_trap_valid	
+comentry_lookup_trap_valid:	
+	movl	a2@,d0	
+	movl	a7@+,a0	
+	jmp	a0@(4)	
+	.globl	comentry_lookup_trap_unassigned	
+comentry_lookup_trap_unassigned:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a0,a7@-	
+	movb	#tc_quad,a7@	
+	moveq	#err_unassigned_variable,d0	
+	bra	comentry_lookup_trap_error	
+	.globl	comentry_lookup_trap	
+comentry_lookup_trap:	
+	movl	a0@,d0	
+	andl	d7,d0	
+	cmpl	#trap_max_immediate,d0	
+	bles	comentry_lookup_trap_immediate	
+	movl	d0,a2	
+	cmpl	#tc_fixnum*0x1000000+trap_fluid,a2@	
+	bnes	comentry_lookup_trap_continue	
+	.globl	comentry_lookup_trap_fluid	
+comentry_lookup_trap_fluid:	
+	movl	a0,a7@-	
+	movl	a0@,a7@-	
+	jsr	_lookup_fluid	
+	addql	#4,sp	
+	movl	a7@+,a0	
+	movl	d0,a2	
+	cmpb	#tc_reference_trap,a2@	
+	bne	comentry_lookup_trap_valid	
+	movl	a2@,d0	
+	andl	d7,d0	
+comentry_lookup_trap_immediate:	
+	cmpl	#trap_unassigned,d0	
+	beq	comentry_lookup_trap_unassigned	
+comentry_lookup_trap_continue:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a0,a7@-	
+	movb	#tc_quad,a7@	
+	movl	a7@,a0	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a0,a7@-	
+	jsr	_compiler_lookup_trap	
+	addql	#4,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_lookup_trap_error	
+	addql	#4,sp	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+comentry_lookup_trap_error:	
+	movl	a7@(4),d1	
+	bsr	compiled_entry_to_block	
+	movl	d0,_compiled_code_error_code	
+	movl	a0@,d0	
+	andl	d7,d0	
+	movl	a0@(0,d0:l:4),a0	
+	movl	a7@,a1	
+	movl	a0,a7@	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a0,a7@-	
+	movl	a1,a7@-	
+	jsr	_compiler_var_error	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	d0,a7@-	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_lookup_trap_restart,a7@-	
+	bra	return_to_interpreter_error	
+	.globl	_comp_lookup_trap_restart	
+_comp_lookup_trap_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@,d0	
+	movl	a7@(4),d1	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	d0,a7@-	
+	movl	d1,a7@-	
+	jsr	_Symbol_Lex_Ref	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	beqs	comentry_lookup_trap_restart_continue	
+	movl	d0,_compiled_code_error_code	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_lookup_trap_restart,a7@-	
+	bra	return_to_interpreter_error	
+comentry_lookup_trap_restart_continue:	
+	addql	#8,sp	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+	.globl	comentry_safe_lookup_trap_valid	
+comentry_safe_lookup_trap_valid:	
+	movl	a2@,d0	
+	movl	a7@+,a0	
+	jmp	a0@(4)	
+	.globl	comentry_safe_lookup_trap_unassigned	
+comentry_safe_lookup_trap_unassigned:	
+	movl	#tc_reference_trap*0x1000000+trap_unassigned,d0	
+	movl	a7@+,a0	
+	jmp	a0@(4)	
+	.globl	comentry_safe_lookup_trap	
+comentry_safe_lookup_trap:	
+	movl	a0@,d0	
+	andl	d7,d0	
+	cmpl	#trap_max_immediate,d0	
+	bles	comentry_safe_lookup_trap_immediate	
+	movl	d0,a2	
+	cmpl	#tc_fixnum*0x1000000+trap_fluid,a2@	
+	bnes	comentry_safe_lookup_trap_continue	
+	.globl	comentry_safe_lookup_trap_fluid	
+comentry_safe_lookup_trap_fluid:	
+	movl	a0,a7@-	
+	movl	a0@,a7@-	
+	jsr	_lookup_fluid	
+	addql	#4,sp	
+	movl	a7@+,a0	
+	movl	d0,a2	
+	cmpb	#tc_reference_trap,a2@	
+	bne	comentry_safe_lookup_trap_valid	
+	movl	a2@,d0	
+	andl	d7,d0	
+comentry_safe_lookup_trap_immediate:	
+	cmpl	#trap_unassigned,d0	
+	beq	comentry_safe_lookup_trap_unassigned	
+comentry_safe_lookup_trap_continue:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a0,a7@-	
+	movb	#tc_quad,a7@	
+	movl	a7@,a0	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a0,a7@-	
+	jsr	_compiler_safe_lookup_trap	
+	addql	#4,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_safe_lookup_trap_error	
+	addql	#4,sp	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+comentry_safe_lookup_trap_error:	
+	movl	a7@(4),d1	
+	bsr	compiled_entry_to_block	
+	movl	d0,_compiled_code_error_code	
+	movl	a0@,d0	
+	andl	d7,d0	
+	movl	a0@(0,d0:l:4),a0	
+	movl	a7@,a1	
+	movl	a0,a7@	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a0,a7@-	
+	movl	a1,a7@-	
+	jsr	_compiler_var_error	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	d0,a7@-	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_safe_lookup_trap_restart,a7@-	
+	bra	return_to_interpreter_error	
+	.globl	_comp_safe_lookup_trap_restart	
+_comp_safe_lookup_trap_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@,d0	
+	movl	a7@(4),d1	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	d0,a7@-	
+	movl	d1,a7@-	
+	jsr	_safe_symbol_lex_ref	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	beqs	comentry_safe_lookup_trap_restart_continue	
+	movl	d0,_compiled_code_error_code	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_safe_lookup_trap_restart,a7@-	
+	bra	return_to_interpreter_error	
+comentry_safe_lookup_trap_restart_continue:	
+	addql	#8,sp	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+	.globl	comentry_unassigned_p_trap_valid	
+comentry_unassigned_p_trap_valid:	
+	movl	#tc_null*0x1000000+0,d0	
+	movl	a7@+,a0	
+	jmp	a0@(4)	
+	.globl	comentry_unassigned_p_trap_unassigned	
+comentry_unassigned_p_trap_unassigned:	
+	movl	#tc_true*0x1000000+0,d0	
+	movl	a7@+,a0	
+	jmp	a0@(4)	
+	.globl	comentry_unassigned_p_trap	
+comentry_unassigned_p_trap:	
+	movl	a0@,d0	
+	andl	d7,d0	
+	cmpl	#trap_max_immediate,d0	
+	bles	comentry_unassigned_p_trap_immediate	
+	movl	d0,a2	
+	cmpl	#tc_fixnum*0x1000000+trap_fluid,a2@	
+	bnes	comentry_unassigned_p_trap_continue	
+	.globl	comentry_unassigned_p_trap_fluid	
+comentry_unassigned_p_trap_fluid:	
+	movl	a0,a7@-	
+	movl	a0@,a7@-	
+	jsr	_lookup_fluid	
+	addql	#4,sp	
+	movl	a7@+,a0	
+	movl	d0,a2	
+	cmpb	#tc_reference_trap,a2@	
+	bne	comentry_unassigned_p_trap_valid	
+	movl	a2@,d0	
+	andl	d7,d0	
+comentry_unassigned_p_trap_immediate:	
+	cmpl	#trap_unassigned,d0	
+	beq	comentry_unassigned_p_trap_unassigned	
+comentry_unassigned_p_trap_continue:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a0,a7@-	
+	movb	#tc_quad,a7@	
+	movl	a7@,a0	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a0,a7@-	
+	jsr	_compiler_unassigned_p_trap	
+	addql	#4,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_unassigned_p_trap_error	
+	addql	#4,sp	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+comentry_unassigned_p_trap_error:	
+	movl	a7@(4),d1	
+	bsr	compiled_entry_to_block	
+	movl	d0,_compiled_code_error_code	
+	movl	a0@,d0	
+	andl	d7,d0	
+	movl	a0@(0,d0:l:4),a0	
+	movl	a7@,a1	
+	movl	a0,a7@	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a0,a7@-	
+	movl	a1,a7@-	
+	jsr	_compiler_var_error	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	d0,a7@-	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_unassigned_p_trap_restart,a7@-	
+	bra	return_to_interpreter_error	
+	.globl	_comp_unassigned_p_trap_restart	
+_comp_unassigned_p_trap_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@,d0	
+	movl	a7@(4),d1	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	d0,a7@-	
+	movl	d1,a7@-	
+	jsr	_Symbol_Lex_unassigned_p	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	beqs	comentry_unassigned_p_trap_restart_continue	
+	movl	d0,_compiled_code_error_code	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_unassigned_p_trap_restart,a7@-	
+	bra	return_to_interpreter_error	
+comentry_unassigned_p_trap_restart_continue:	
+	addql	#8,sp	
+	movl	a6@(regblock_val),d0	
+	clrb	a7@	
+	rts
+	.globl	comentry_assignment_trap	
+comentry_assignment_trap:	
+	movl	a0@,d0	
+	andl	d7,d0	
+	cmpl	#trap_max_immediate,d0	
+	bles	comentry_assignment_trap_immediate	
+	movl	d0,a2	
+	cmpl	#tc_fixnum*0x1000000+trap_fluid,a2@	
+	bnes	comentry_assignment_trap_continue	
+	.globl	comentry_assignment_trap_fluid	
+comentry_assignment_trap_fluid:	
+	movl	a0,a7@-	
+	movl	a1,a7@-	
+	movl	a0@,a7@-	
+	jsr	_lookup_fluid	
+	addql	#4,sp	
+	movl	a7@+,a1	
+	movl	a7@+,a0	
+	movl	d0,a2	
+	cmpb	#tc_reference_trap,a2@	
+	beqs	comentry_assignment_trap_fluid_trap	
+	movl	a1,a2@	
+	movl	a7@+,a0	
+	jmp	a0@(4)	
+comentry_assignment_trap_fluid_trap:	
+	movl	a2@,d0	
+	andl	d7,d0	
+	cmpl	#trap_unassigned,d0	
+	bnes	comentry_assignment_trap_continue	
+	movl	a1,a2@	
+	movl	a7@+,a0	
+	jmp	a0@(4)	
+comentry_assignment_trap_immediate:	
+	cmpl	#trap_unassigned,d0	
+	bnes	comentry_assignment_trap_continue	
+	movl	a1,a0@	
+	movl	a7@+,a0	
+	jmp	a0@(4)	
+comentry_assignment_trap_continue:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+	movb	#tc_quad,a7@	
+	movl	a7@,a0	
+comentry_assignment_trap_1:	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a1,a7@-	
+	movl	a0,a7@-	
+	jsr	_compiler_assignment_trap	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_assignment_trap_error	
+	addql	#8,sp	
+	clrb	a7@	
+	rts
+comentry_assignment_trap_error:	
+	movl	a7@(8),d1	
+	bsr	compiled_entry_to_block	
+	movl	d0,_compiled_code_error_code	
+	movl	a0@,d0	
+	andl	d7,d0	
+	movl	a0@(0,d0:l:4),a0	
+	movl	a7@,a1	
+	movl	a0,a7@	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a0,a7@-	
+	movl	a1,a7@-	
+	jsr	_compiler_var_error	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	d0,a7@-	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_assignment_trap_restart,a7@-	
+	bra	return_to_interpreter_error	
+	.globl	_comp_assignment_trap_restart	
+_comp_assignment_trap_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@,d0	
+	movl	a7@(4),d1	
+	movl	a7@(8),d2	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	d2,a7@-	
+	movl	d0,a7@-	
+	movl	d1,a7@-	
+	jsr	_Symbol_Lex_Set	
+	lea	a7@(12),sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	beqs	comentry_assignment_trap_restart_continue	
+	movl	d0,_compiled_code_error_code	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_assignment_trap_restart,a7@-	
+	bra	return_to_interpreter_error	
+comentry_assignment_trap_restart_continue:	
+	lea	a7@(12),sp	
+	clrb	a7@	
+	rts
+	.globl	comentry_cache_lookup_apply	
+comentry_cache_lookup_apply:	
+	movl	a1,a7@-	
+	movb	#tc_compiled_code_block,a7@	
+	extl	d0	
+	movl	d0,a7@-	
+	movl	a3,a7@-	
+	movb	#tc_quad,a7@	
+	movl	a7@,a3	
+comentry_cache_lookup_apply_1:	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a3,a7@-	
+	jsr	_compiler_lookup_trap	
+	addql	#4,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_cache_lookup_apply_error	
+	addql	#4,sp	
+	movl	a7@+,d0	
+	movl	a6@(regblock_val),a7@	
+	bra	comentry_apply	
+comentry_cache_lookup_apply_error:	
+	movl	a7@(8),d1	
+	andl	d7,d1	
+	movl	d1,a0	
+	movl	d0,_compiled_code_error_code	
+	movl	a0@,d0	
+	andl	d7,d0	
+	movl	a0@(0,d0:l:4),a0	
+	movl	a7@,a1	
+	movl	a0,a7@	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a0,a7@-	
+	movl	a1,a7@-	
+	jsr	_compiler_var_error	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	d0,a7@-	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_cache_lookup_apply_restart,a7@-	
+	bra	return_to_interpreter_error	
+	.globl	_comp_cache_lookup_apply_restart	
+_comp_cache_lookup_apply_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@,d0	
+	movl	a7@(4),d1	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	d0,a7@-	
+	movl	d1,a7@-	
+	jsr	_Symbol_Lex_Ref	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	beqs	comentry_cache_lookup_apply_continue	
+	movl	d0,_compiled_code_error_code	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_cache_lookup_apply_restart,a7@-	
+	bra	return_to_interpreter_error	
+comentry_cache_lookup_apply_continue:	
+	addql	#8,sp	
+	movl	a7@+,d0	
+	movl	a6@(regblock_val),a7@	
+	bra	comentry_apply	
+	.globl	comentry_operator_lookup_trap	
+comentry_operator_lookup_trap:	
+	movl	a7@+,a0	
+	movl	a7@+,a1	
+	pea	a0@(-4)	
+	movb	#tc_compiled_entry,a7@	
+	pea	a1@	
+	movl	a0@,d0	
+	movl	d0,d1	
+	andl	d7,d1	
+	movl	d1,a2	
+	cmpb	#tc_reference_trap,a2@	
+	beqs	comentry_operator_lookup_1	
+	movl	a2@,a7@(4)	
+	bras	comentry_operator_lookup_invoke	
+comentry_operator_lookup_1:	
+	movl	a2@,d1	
+	movl	d1,d2	
+	andl	d7,d2	
+	cmpl	#trap_max_immediate,d2	
+	bles	comentry_operator_lookup_2	
+	movl	d2,a1	
+	cmpl	#tc_fixnum*0x1000000+trap_fluid,a1@	
+	bnes	comentry_operator_lookup_2	
+	movl	d0,a7@-	
+	movl	d1,a7@-	
+	jsr	_lookup_fluid	
+	addql	#4,sp	
+	movl	d0,a2	
+	movl	a7@+,d0	
+	cmpb	#tc_reference_trap,a2@	
+	beqs	comentry_operator_lookup_2	
+	movl	a2@,a7@(4)	
+	bras	comentry_operator_lookup_invoke	
+comentry_operator_lookup_2:	
+	lea	a7@(4),a0	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	d0,a7@-	
+	movl	a0,a7@-	
+	jsr	_complr_operator_reference_trap	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	bnes	comentry_operator_lookup_trap_error	
+comentry_operator_lookup_invoke:	
+	cmpb	#tc_compiled_entry,a7@(4)	
+	bnes	comentry_operator_trap_interpreted	
+	movl	a7@(4),d0	
+	andl	d7,d0	
+	movl	d0,a0	
+	cmpw	#0xfffd,a0@(-4)	
+	bnes	comentry_operator_trap_compiled	
+	movl	a7@+,a7@	
+	jmp	a0@	
+comentry_operator_trap_compiled:	
+	movl	a7@+,a1	
+	movw	a1@,d0	
+	addql	#4,sp	
+	bra	apply_compiled_procedure_3	
+comentry_operator_trap_interpreted:	
+	movl	a7@+,a0	
+	movw	a0@,d0	
+	bra	comentry_apply_interpreted	
+comentry_operator_lookup_trap_error:	
+	movl	a7@+,a0	
+	movw	a0@,d1	
+	extl	d1	
+	movl	d1,a7@-	
+	movl	a7@(4),d1	
+	andl	d7,d1	
+	movl	d1,a0	
+	movl	a0@(4),a7@-	
+	movl	a0@(8),d1	
+	andl	d7,d1	
+	movl	d1,a0	
+	movl	d0,_compiled_code_error_code	
+	movl	a0@,d0	
+	andl	d7,d0	
+	movl	a0@(0,d0:l:4),a0	
+	movl	a7@,a1	
+	movl	a0,a7@	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	a0,a7@-	
+	movl	a1,a7@-	
+	jsr	_compiler_var_error	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	d0,a7@-	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_op_lookup_trap_restart,a7@-	
+	bra	return_to_interpreter_error	
+	.globl	_comp_op_lookup_trap_restart	
+_comp_op_lookup_trap_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	lea	a7@(12),sp	
+	clrb	a7@	
+	movl	a7@+,a0	
+	movl	a0@(12),d0	
+	andl	d7,d0	
+	movl	a0@(8),d1	
+	andl	d7,d1	
+	movl	d1,a0	
+	jmp	a0@(0,d0:l:4)	
+	.globl	comentry_primitive_apply	
+comentry_primitive_apply:	
+	movl	d6,a6@(regblock_expr)	
+	andl	#primitive_index_mask,d6	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	a5,_Free	
+	jsr	@(_Primitive_Procedure_Table,d6:w:4)@(0)	
+	movl	_Free,a5	
+	movl	d0,a6@(regblock_val)	
+	addl	@(_Primitive_Count_Table,d6:w:4),sp	
+	clrb	a7@	
+	rts
+	.globl	comentry_primitive_lexpr_apply	
+comentry_primitive_lexpr_apply:	
+	movl	d6,a6@(regblock_expr)	
+	andl	#primitive_index_mask,d6	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	a5,_Free	
+	jsr	@(_Primitive_Procedure_Table,d6:w:4)@(0)	
+	movl	_Free,a5	
+	movl	d0,a6@(regblock_val)	
+	movl	a6@(regblock_lexpr_actuals),d0	
+	lea	a7@(0,d0:w:4),sp	
+	clrb	a7@	
+	rts
+	.data
+pc_zero_string:	
+	.asciz	"ZERO?"	
+pc_positive_string:	
+	.asciz	"POSITIVE?"	
+pc_negative_string:	
+	.asciz	"NEGATIVE?"	
+pc_equal_string:	
+	.asciz	"&="	
+pc_less_string:	
+	.asciz	"&<"	
+pc_greater_string:	
+	.asciz	"&>"	
+pc_plus_string:	
+	.asciz	"&+"	
+pc_minus_string:	
+	.asciz	"&-"	
+pc_multiply_string:	
+	.asciz	"&*"	
+pc_divide_string:	
+	.asciz	"&/"	
+pc_increment_string:	
+	.asciz	"1+"	
+pc_decrement_string:	
+	.asciz	"-1+"	
+	.align	4	
+first_pc_name:	
+	.long	pc_zero_string	
+	.long	pc_positive_string	
+	.long	pc_negative_string	
+	.long	pc_equal_string	
+	.long	pc_less_string	
+	.long	pc_greater_string	
+	.long	pc_plus_string	
+	.long	pc_minus_string	
+	.long	pc_multiply_string	
+	.long	pc_divide_string	
+	.long	pc_increment_string	
+	.long	pc_decrement_string	
+last_pc_name:	
+	.skip	4	
+	.globl	first_pc_code	
+first_pc_code:	
+pc_zero:	
+	.skip	4	
+pc_positive:	
+	.skip	4	
+pc_negative:	
+	.skip	4	
+pc_equal:	
+	.skip	4	
+pc_less:	
+	.skip	4	
+pc_greater:	
+	.skip	4	
+pc_plus:	
+	.skip	4	
+pc_minus:	
+	.skip	4	
+pc_multiply:	
+	.skip	4	
+pc_divide:	
+	.skip	4	
+pc_increment:	
+	.skip	4	
+pc_decrement:	
+	.skip	4	
+	.text
+unary_return_true:	
+	movl	#tc_true*0x1000000+0,a6@(regblock_val)	
+	addql	#4,sp	
+	clrb	a7@	
+	rts
+	.globl	comentry_zero	
+comentry_zero:	
+	cmpb	#tc_fixnum,a7@	
+	bnes	zero_generic	
+	movl	a7@,d0	
+	lsll	#8,d0	
+	beq	unary_return_true	
+	movl	#tc_null*0x1000000+0,a6@(regblock_val)	
+	addql	#4,sp	
+	clrb	a7@	
+	rts
+zero_generic:	
+	movl	pc_zero,d6	
+	bra	comentry_primitive_apply	
+	.globl	comentry_positive	
+comentry_positive:	
+	cmpb	#tc_fixnum,a7@	
+	bnes	positive_generic	
+	movl	a7@,d0	
+	lsll	#8,d0	
+	bgt	unary_return_true	
+	movl	#tc_null*0x1000000+0,a6@(regblock_val)	
+	addql	#4,sp	
+	clrb	a7@	
+	rts
+positive_generic:	
+	movl	pc_positive,d6	
+	bra	comentry_primitive_apply	
+	.globl	comentry_negative	
+comentry_negative:	
+	cmpb	#tc_fixnum,a7@	
+	bnes	negative_generic	
+	movl	a7@,d0	
+	lsll	#8,d0	
+	blt	unary_return_true	
+	movl	#tc_null*0x1000000+0,a6@(regblock_val)	
+	addql	#4,sp	
+	clrb	a7@	
+	rts
+negative_generic:	
+	movl	pc_negative,d6	
+	bra	comentry_primitive_apply	
+	.globl	comentry_increment	
+comentry_increment:	
+	cmpb	#tc_fixnum,a7@	
+	bnes	increment_generic	
+	movl	a7@,d0	
+	lsll	#8,d0	
+	addl	#256,d0	
+	bvss	increment_generic	
+	lsrl	#8,d0	
+	movl	d0,a6@(regblock_val)	
+	movb	#tc_fixnum,a6@(regblock_val)	
+	addql	#4,sp	
+	clrb	a7@	
+	rts
+increment_generic:	
+	movl	pc_increment,d6	
+	bra	comentry_primitive_apply	
+	.globl	comentry_decrement	
+comentry_decrement:	
+	cmpb	#tc_fixnum,a7@	
+	bnes	decrement_generic	
+	movl	a7@,d0	
+	lsll	#8,d0	
+	subl	#256,d0	
+	bvss	decrement_generic	
+	lsrl	#8,d0	
+	movl	d0,a6@(regblock_val)	
+	movb	#tc_fixnum,a6@(regblock_val)	
+	addql	#4,sp	
+	clrb	a7@	
+	rts
+decrement_generic:	
+	movl	pc_decrement,d6	
+	bra	comentry_primitive_apply	
+binary_return_true:	
+	movl	#tc_true*0x1000000+0,a6@(regblock_val)	
+	addql	#8,sp	
+	clrb	a7@	
+	rts
+	.globl	comentry_equal	
+comentry_equal:	
+	cmpb	#tc_fixnum,a7@	
+	bnes	equal_generic	
+	cmpb	#tc_fixnum,a7@(4)	
+	bnes	equal_generic	
+	movl	a7@,d0	
+	lsll	#8,d0	
+	movl	a7@(4),d1	
+	lsll	#8,d1	
+	cmpl	d1,d0	
+	beq	binary_return_true	
+	movl	#tc_null*0x1000000+0,a6@(regblock_val)	
+	addql	#8,sp	
+	clrb	a7@	
+	rts
+equal_generic:	
+	movl	pc_equal,d6	
+	bra	comentry_primitive_apply	
+	.globl	comentry_less	
+comentry_less:	
+	cmpb	#tc_fixnum,a7@	
+	bnes	less_generic	
+	cmpb	#tc_fixnum,a7@(4)	
+	bnes	less_generic	
+	movl	a7@,d0	
+	lsll	#8,d0	
+	movl	a7@(4),d1	
+	lsll	#8,d1	
+	cmpl	d1,d0	
+	blt	binary_return_true	
+	movl	#tc_null*0x1000000+0,a6@(regblock_val)	
+	addql	#8,sp	
+	clrb	a7@	
+	rts
+less_generic:	
+	movl	pc_less,d6	
+	bra	comentry_primitive_apply	
+	.globl	comentry_greater	
+comentry_greater:	
+	cmpb	#tc_fixnum,a7@	
+	bnes	greater_generic	
+	cmpb	#tc_fixnum,a7@(4)	
+	bnes	greater_generic	
+	movl	a7@,d0	
+	lsll	#8,d0	
+	movl	a7@(4),d1	
+	lsll	#8,d1	
+	cmpl	d1,d0	
+	bgt	binary_return_true	
+	movl	#tc_null*0x1000000+0,a6@(regblock_val)	
+	addql	#8,sp	
+	clrb	a7@	
+	rts
+greater_generic:	
+	movl	pc_greater,d6	
+	bra	comentry_primitive_apply	
+	.globl	comentry_plus	
+comentry_plus:	
+	cmpb	#tc_fixnum,a7@	
+	bnes	plus_generic	
+	cmpb	#tc_fixnum,a7@(4)	
+	bnes	plus_generic	
+	movl	a7@,d0	
+	lsll	#8,d0	
+	movl	a7@(4),d1	
+	lsll	#8,d1	
+	addl	d1,d0	
+	bvss	plus_generic	
+	lsrl	#8,d0	
+	movl	d0,a6@(regblock_val)	
+	movb	#tc_fixnum,a6@(regblock_val)	
+	addql	#8,sp	
+	clrb	a7@	
+	rts
+plus_generic:	
+	movl	pc_plus,d6	
+	bra	comentry_primitive_apply	
+	.globl	comentry_minus	
+comentry_minus:	
+	cmpb	#tc_fixnum,a7@	
+	bnes	minus_generic	
+	cmpb	#tc_fixnum,a7@(4)	
+	bnes	minus_generic	
+	movl	a7@,d0	
+	lsll	#8,d0	
+	movl	a7@(4),d1	
+	lsll	#8,d1	
+	subl	d1,d0	
+	bvss	minus_generic	
+	lsrl	#8,d0	
+	movl	d0,a6@(regblock_val)	
+	movb	#tc_fixnum,a6@(regblock_val)	
+	addql	#8,sp	
+	clrb	a7@	
+	rts
+minus_generic:	
+	movl	pc_minus,d6	
+	bra	comentry_primitive_apply	
+	.globl	comentry_multiply	
+comentry_multiply:	
+	cmpb	#tc_fixnum,a7@	
+	bnes	multiply_generic	
+	cmpb	#tc_fixnum,a7@(4)	
+	bnes	multiply_generic	
+	movl	a7@,d0	
+	lsll	#8,d0	
+	movl	a7@(4),d1	
+	lsll	#8,d1	
+	asrl	#8,d1	
+	mulsl	d1,d0	
+	bvss	multiply_generic	
+	lsrl	#8,d0	
+	movl	d0,a6@(regblock_val)	
+	movb	#tc_fixnum,a6@(regblock_val)	
+	addql	#8,sp	
+	clrb	a7@	
+	rts
+multiply_generic:	
+	movl	pc_multiply,d6	
+	bra	comentry_primitive_apply	
+	.globl	comentry_divide	
+comentry_divide:	
+	movl	pc_divide,d6	
+	bra	comentry_primitive_apply	
+	.globl	comentry_link	
+comentry_link:	
+	addql	#4,a7@	
+	movb	#tc_compiled_entry,a7@	
+	movl	a0,a7@-	
+	movl	a1,a7@-	
+	movl	d0,a7@-	
+	movl	a0@,d0	
+	andl	d7,d0	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	d0,a7@-	
+	movl	a0,a7@-	
+	jsr	_propagate_variable_cache	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@+,d0	
+	movl	a7@+,a1	
+	movl	a7@+,a0	
+	movl	a1,d6	
+	subl	a0,d6	
+	lsrl	#2,d6	
+	movw	d0,a7@-	
+	movw	#tc_fixnum*0x100,a7@-	
+	movl	a0,a4	
+	movl	a0,a7@-	
+	movb	#tc_compiled_code_block,a7@	
+	movl	a7@+,d4	
+	bra	comentry_outer_loop_enter	
+comentry_outer_loop:	
+	movb	#tc_linkage_section,a4@(0,d6:l:4)	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	d6,a7@-	
+	movl	a4,a7@-	
+	jsr	_propagate_variable_cache	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	d6,a7@-	
+	movb	#tc_fixnum,a7@	
+	movw	a4@(2,d6:l:4),d5	
+	movb	a4@(1,d6:l:4),d0	
+	bnes	comentry_link_caches	
+	lsrw	#1,d5	
+	subql	#1,d6	
+	subqw	#1,d5	
+comentry_link_operators_restart:	
+	moveq	#2,d3	
+	movl	#_compiler_cache_operator,a3	
+	bras	comentry_link_caches_loop	
+comentry_link_caches:	
+	subqw	#1,d5	
+comentry_link_caches_restart:	
+	moveq	#1,d3	
+	movl	#_compiler_cache_lookup,a3	
+	cmpb	#1,d0	
+	beqs	comentry_link_caches_loop	
+	movl	#_compiler_cache_assignment,a3	
+comentry_link_caches_loop:	
+	addl	d3,d6	
+	movl	a4@(0,d6:l:4),d0	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	d6,a7@-	
+	movl	d4,a7@-	
+	movl	d0,a7@-	
+	jsr	a3@	
+	lea	a7@(12),sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	cmpl	#prim_done,d0	
+	dbne	d5,comentry_link_caches_loop	
+	bnes	comentry_link_caches_error	
+	addl	d3,d6	
+	lea	a7@(4),sp	
+comentry_outer_loop_enter:	
+	subqw	#1,a7@(2)	
+	bge	comentry_outer_loop	
+	lea	a7@(4),sp	
+	clrb	a7@	
+	rts
+comentry_link_caches_error:	
+	movl	d6,a7@-	
+	movb	#tc_fixnum,a7@	
+	movl	d4,a7@-	
+	movw	d5,a7@-	
+	movw	#tc_fixnum*0x100,a7@-	
+	movl	a7@(12),d5	
+	andl	d7,d5	
+	subl	d5,d6	
+	subql	#1,d6	
+	movl	d0,d2	
+	movw	a4@(2,d5:l:4),d3	
+	movw	d6,a4@(2,d5:l:4)	
+	movw	d3,a7@-	
+	movw	#tc_fixnum*0x100,a7@-	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	d5,a7@-	
+	movl	a4,a7@-	
+	jsr	_propagate_variable_cache	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	d2,d0	
+	cmpl	#prim_interrupt,d0	
+	beqs	comentry_link_caches_interrupt	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_link_caches_restart,a7@-	
+	movl	d0,_compiled_code_error_code	
+	bra	return_to_interpreter_error	
+comentry_link_caches_interrupt:	
+	movl	#tc_null*0x1000000+0,a7@-	
+	movl	#tc_return_code*0x1000000+rc_comp_link_caches_restart,a7@-	
+	bra	return_to_interpreter	
+	.globl	_comp_link_caches_restart	
+_comp_link_caches_restart:	
+	moveml	d2-d7/a2-a6,a7@-	
+	movl	#0x00ffffff,d7	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movl	a7@+,d0	
+	movl	a7@+,d5	
+	movl	a7@,d4	
+	clrb	a7@	
+	movl	a7@+,a4	
+	movl	a4@,d6	
+	andl	d7,d6	
+	movl	a4@(0,d6:l:4),a6@(regblock_env)	
+	movl	a7@+,d6	
+	andl	d7,d6	
+	movl	a7@,d2	
+	andl	d7,d2	
+	movw	d0,a4@(2,d2:l:4)	
+	movl	a5,_Free	
+	movl	sp,_Ext_Stack_Pointer	
+	movl	c_save_stack,sp	
+	movl	d2,a7@-	
+	movl	a4,a7@-	
+	jsr	_propagate_variable_cache	
+	addql	#8,sp	
+	movl	sp,c_save_stack	
+	movl	_Ext_Stack_Pointer,sp	
+	movl	_Free,a5	
+	lea	_Registers,a6	
+	movb	a4@(1,d2:l:4),d0	
+	beqs	comp_link_operator_restart	
+	subql	#1,d6	
+	bra	comentry_link_caches_restart	
+comp_link_operator_restart:	
+	subql	#2,d6	
+	bra	comentry_link_operators_restart	
+	.globl	_compiler_initialize	
+_compiler_initialize:	
+	lea	_Registers,a1	
+	lea	a1@(regblock_hooks),a0	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_return_to_interpreter,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_operator_lookup_trap,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_operator_interpreted_trap,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_operator_arity_trap,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_operator_apply_trap,a0@+	
+	lea	a1@(regblock_entries),a0	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_link,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_error,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_apply,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_lexpr_apply,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_primitive_apply,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_primitive_lexpr_apply,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_cache_lookup_apply,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_lookup_apply,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_interrupt_continuation,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_interrupt_ic_procedure,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_interrupt_procedure,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_interrupt_closure,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_reference,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_safe_reference,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_assignment,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_access,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_unassigned_p,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_unbound_p,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_definition,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_lookup_trap,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_safe_lookup_trap,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_assignment_trap,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_unassigned_p_trap,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_plus,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_minus,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_multiply,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_divide,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_equal,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_less,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_greater,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_increment,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_decrement,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_zero,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_positive,a0@+	
+	movw	#0x4ef9,a0@+	
+	movl	#comentry_negative,a0@+	
+	movl	#2,_compiler_interface_version	
+	movl	#1,_compiler_processor_type	
+	movl	#tc_null*0x1000000+0,_compiler_utilities	
+	tstl	a7@(4)	
+	bnes	init_constant_space	
+	rts
+init_constant_space:	
+	lea	constant_end,a0	
+	movl	a0,d0	
+	lea	constant_start,a0	
+	subl	a0,d0	
+	lsrl	#2,d0	
+	movl	d0,a7@-	
+	movl	d0,a7@-	
+	movl	a0,a7@-	
+	jsr	_copy_to_constant_space	
+	addql	#8,sp	
+	movl	d0,a0	
+	movl	a7@+,d0	
+	subql	#1,d0	
+	movl	d0,a0@	
+	movb	#tc_manifest_vector,a0@	
+	subql	#1,d0	
+	movl	d0,a0@(4)	
+	movb	#tc_manifest_nm_vector,a0@(4)	
+	.globl	compiler_reset	
+compiler_reset:	
+	movl	a0,a7@-	
+	movb	#tc_compiled_code_block,a7@	
+	movl	a7@,_compiler_utilities	
+	movb	#tc_compiled_entry,a7@	
+	movl	a7@+,d1	
+	addl	#constant_return_to_interpreter-constant_start,d1	
+	movl	d1,_return_to_interpreter	
+	lea	first_pc_code,a0	
+	movl	a0,a7@-	
+	lea	first_pc_name,a0	
+	movl	a0,a7@-	
+	bras	enter_primitive_loop	
+primitive_loop:	
+	movl	a7@,a0	
+	movl	a0@,a7@-	
+	jsr	_make_primitive	
+	addql	#4,sp	
+	movl	a7@(4),a0	
+	movl	d0,a0@+	
+	movl	a0,a7@(4)	
+	addql	#4,a7@	
+enter_primitive_loop:	
+	movl	a7@,d0	
+	lea	last_pc_name,a0	
+	cmpl	a0,d0	
+	blts	primitive_loop	
+	lea	a7@(8),sp	
+	rts
+	.globl	_compiler_reset	
+_compiler_reset:	
+	cmpb	#tc_compiled_code_block,a7@(4)	
+	bne	compiler_reset_error	
+	movl	a7@(4),d0	
+	andl	#0xffffff,d0	
+	movl	d0,a0	
+	bra	compiler_reset	
+compiler_reset_error:	
+	jsr	_compiler_reset_error	
+	rts
+	.data
+	.align	4	
+constant_start:	
+	.long	0	
+	.long	0	
+	.word	0x8080	
+	.word	constant_return_to_interpreter-constant_start	
+constant_return_to_interpreter:	
+	jmp	a6@(offset_return_to_interpreter)	
+	.align	4	
+constant_end:	
+	.long	0	

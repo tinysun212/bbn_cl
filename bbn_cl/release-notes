@@ -1,0 +1,26 @@
+
+Butterfly Lisp Release Notes
+Addendum for Rel 2.00
+las 4/6/90
+
+
+			Bugs Repaired
+   - Common Lisp only:
+
+	- Prog* always returned a compiled procedure.
+	- Defstruct :print-function did not accept a lambda-expr.
+	- The dribble function produced infinite garbage as output.
+
+   - Scheme and Common Lisp:
+
+	- When gc-notification is on, system could bomb with "Illegal argument NIL to
+	  system-vector-32b-ref", just before printing a gc notice.
+
+	- I/O redirection failed miserably.  
+	  Various problems here were repaired that account for interleaved
+	  output in stdout files, echoing of input to the stdout file, and
+	  premature termination of the system when redirecting io and using more
+	  than one processor.
+
+	- The multiple-value system could not return more than 8 or so
+	  values reliably (Scheme/Common Lisp bombs).

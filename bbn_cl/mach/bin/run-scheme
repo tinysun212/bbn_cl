@@ -1,0 +1,80 @@
+##!/bin/csh -f
+#                                 ********
+#
+# Copyright 1992 by BBN Systems and Technologies, A division of Bolt,
+# Beranek and Newman Inc.
+#
+# Permission to use, copy, modify and distribute this software and its
+# documentation is hereby granted without fee, provided that the above
+# copyright notice and this permission appear in all copies and in
+# supporting documentation, and that the name Bolt, Beranek and Newman
+# Inc. not be used in advertising or publicity pertaining to distribution
+# of the software without specific, written prior permission.  In
+# addition, BBN makes no respresentation about the suitability of this
+# software for any purposes.  It is provided "AS IS" without express or
+# implied warranties including (but not limited to) all implied warranties
+# of merchantability and fitness.  In no event shall BBN be liable for any
+# special, indirect or consequential damages whatsoever resulting from
+# loss of use, data or profits, whether in an action of contract,
+# negligence or other tortuous action, arising out of or in connection
+# with the use or performance of this software.
+# 
+#                                 ********
+# 
+# This "set" is needed bcause ":"-editing does not work on arg vars.
+set cmdname = $0
+/bin/sun
+if ($status == 0) then
+  set mach = false
+else
+  set mach = true
+endif
+set machdir = $cmdname:h/../
+set bandsubdir = "zcomp/"
+set bandroot = "fscheme"
+set bandprefix = ""
+set bandsuffix = "-c"
+if ($mach == true) then
+  set spaces = "-auto"
+else
+  set spaces = "-heap 1000 -constant 1300"
+endif
+set commonlisp = false
+set interpretive = false
+set nocompiler = false
+set verify = false
+foreach option ($*)
+  if ($option == "-commonlisp") then
+    set commonlisp = true
+  endif
+  if ($option == "-interpretive") then
+    set interpretive = true
+  endif
+  if ($option == "-nocompiler") then
+    set nocompiler = true
+  endif
+  if ($option == "-verify") then
+    set verify = true
+  endif
+end
+if ($commonlisp == true) then
+  set bandroot = "cl"
+  set bandsubdir = "cl/"
+endif
+if ($interpretive == true) then
+  set bandprefix = "i"
+endif
+if ($nocompiler == true) then
+  set bandsuffix = ""
+endif
+if ($nocompiler == true && $commonlisp == false) then
+  set bandsubdir = "runtime/"
+endif
+set bandname = $machdir$bandsubdir$bandprefix$bandroot$bandsuffix.band
+set fullcmdname = "${machdir}uc/fscheme $* $spaces -band $bandname -utab ${machdir}runtime/utabmd.bin"
+if ($verify == true) then
+  echo ""
+  echo $fullcmdname
+  echo ""
+endif
+exec $fullcmdname

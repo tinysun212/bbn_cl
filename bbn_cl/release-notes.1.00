@@ -1,0 +1,267 @@
+
+
+Butterfly Lisp Release Notes
+las 2/17/89
+
+
+
+                        Installation
+
+
+First, insert the Lisp tape in the cartridge tape drive on your
+GP1000. Close the door; the green light should now be lit.  The
+remaining work can now be done from any terminal; you need not be at
+the GP1000 console.
+
+You will need to be logged in as root to install Lisp. All files in
+the installation are set with root as their owner and staff as their
+group.  If you need to change these, see the chown, chgrp, and chmod
+Mach commands.
+
+To install Lisp, at least 55 megabytes of disk space must be available
+on your system. If the partition on which /usr resides has
+insufficient space, a link may be created from there to the desired
+directory.  For example,
+
+   cd /usr
+   ln -s <directory-in-which-enough-space-exists> blisp
+
+If sufficient space is available in the /usr partition, and /usr/blisp
+does not exist, do the following (you may need to be logged in as the
+superuser):
+
+   cd /usr
+   mkdir blisp
+
+If you had a previous version of GP1000 Lisp, you may want to save the
+/usr/blisp directory before installing the new version.
+
+Then:
+
+   cd /usr/blisp
+   tar xvp .
+
+The tar command will read the files on the tape.  If you do not wish
+to see the filenames printed as they are read, leave out the "v"
+option from the tar command.
+
+Once the tar command is complete, remove the tape from the drive.
+
+The remaining work may be done while logged in as an "ordinary user".
+
+First, place the following in your command path, using setenv PATH as
+appropriate.
+
+  /usr/blisp/mach/bin
+
+This enables the scheme and common-lisp commands.
+
+Now, typing scheme will invoke Scheme, and typing common-lisp will
+invoke Common Lisp.  See the manual for options to the commands.
+
+
+                   Installation of an Abbreviated Version
+
+If you do not have enough disk space on you system, the following files
+are the ones needed to simply run Common Lisp and Scheme:
+
+  File                                       Size (bytes)            Notes
+
+  /usr/blisp/COPYRIGHT                           2,318
+  /usr/blisp/mach/bin/                           1,691
+  /usr/blisp/mach/cl/cl-c.band               5,531,328               1
+  /usr/blisp/mach/cl/icl-c.band              4,137,624               1,2
+  /usr/blisp/mach/runtime/fscheme.band       1,922,724               3,4
+  /usr/blisp/mach/runtime/ifscheme.band      1,196,712               2,3,4
+  /usr/blisp/mach/runtime/utabmd.bin            13,256
+  /usr/blisp/mach/uc/fscheme                 2,301,952
+  /usr/blisp/mach/zcomp/fscheme-c.band       3,711,864               4
+  /usr/blisp/mach/zcomp/ifscheme-c.band      2,565,292               2,4
+
+Notes:
+
+  1. Not required if use of Common Lisp is not desired.
+  2. Not required if a compiled system only is to be run.
+  3. Not required if running Scheme without the compiler is not desired.
+  4. Not required if use of Scheme is not desired.
+
+
+                  Bugs, Comments, and Suggestions
+
+Bugs, comments and suggestions should be directed via email to:
+
+                     bf-lisp-bugs@bbn.com
+
+
+                      Directory Structure
+
+/usr/blisp/mach contains the code needed to run Scheme and
+Common Lisp.
+
+/usr/blisp/mach/bin should be added to one's command path.
+Then, the common-lisp and scheme commands will work.
+
+/usr/blisp/mach is also the development area for the system, and
+contains all sources. The relevant subdirectories are:
+
+  - uc
+
+    The microcode directory. Contains all C sources for the basic system
+    and primitives.
+
+  - runtime
+
+    The scheme runtime system.
+
+  - sf
+
+    The scheme file syntaxer.
+
+  - cl
+
+    Scheme and Common Lisp source for Common Lisp.
+
+
+                    Modifying the System
+
+   - Microcode
+
+     cd /usr/blisp/mach/uc
+
+     After making source changes, type 'make fscheme'
+
+   - Scheme and Common Lisp Runtime and Compiler
+
+     See /usr/blisp/how-to-rebuild for 
+     an annotated transcript of the build process.
+    
+
+      --------------
+
+                   Parallel Compilation
+
+   Scheme:
+
+     - In Scheme, CF may be invoked on multiple files simultaneously
+       (not by passing a list to CF, however; this will compile
+       files in sequence).
+
+       This can be done by wrapping FUTURE around the CF call.
+ 
+       Using this, we can build a simple PARALLEL-CF:
+
+          (define (pcf file-list)
+	    (if (null? file-list)
+		'()
+		(let ((e (future (cf (car file-list)))))
+		  (let ((r (pcf (cdr file-list))))
+		    (cons (touch e) r)))))
+
+       This procedure will spawn simultaneous CF's, one for
+       each file in file-list, wait for each result, and return
+       a list of the results, in the original order in file-list.
+
+       A minor inconvenience of this method is that the messages
+       output from the compiler are not synchronized, so the output
+       will appear somewhat jumbled.
+
+   CL:
+
+     The Common Lisp compiler uses parallelism within single files.
+     It does this by performing the syntax phase on each expression
+     (which also does any needed evaluations and other sequential
+     compile-time processing), then spawns a parallel task for the code generation,
+     which requires no further context information.
+
+     COMPILE-FILE will use as many processors as are available
+     to compile expressions. In practice, five processors 
+     (i.e. -nint 5 -nmem 5) is usually the number after which 
+     one is limited by syntax time.
+
+     Due to the sequential constraints, we are unable to support
+     compilation of multiple files simultaneously in Common Lisp.
+     The user may, of course, achieve this effect by running multiple
+     Lisp's on the same machine at once.   
+
+
+      --------------
+
+
+                    Outstanding Bugs and Limitations
+
+
+   - Compiled Code Debugging and Hardware Traps.
+
+   - The debugger, entered via (DEBUG), is not as robust to command
+     input errors as it should be. In particular, a line is accepted as
+     input, but only the first character is interpreted as a command.
+     All remaining characters will be ignored. An invalid command character
+     will also be ignored and the debugger prompt will reappear.
+
+   - When tracing in a parallel environment, output synchronization 
+     is not provided, and individual calls are not uniquely identified,
+     so the trace may appear a bit confusing.
+
+     It is suggested that Gist be used for parallel traces.
+
+   - In Common Lisp, T and NIL may not be used in function position,
+     even though their function cells may be set and usefully retrieved.
+
+     Example:
+
+             USER]=> (defun nil (x) (+ x x))
+             
+             NIL 
+             
+             USER]=> (funcall (symbol-function nil) 10)
+             
+             20 
+             
+             USER]=> (nil 10)
+             
+             ;;; Error: Application of Non-Procedure Object NIL
+             
+             There is no environment available;
+             using the current read-eval-print environment.
+             
+             2 Error-> 
+
+   - Common Lisp:
+
+     Certain invalid DEFSTRUCTs are not recognized and hence lead to unclear
+     errors.
+
+     Here are two syntactically wrong attempts to define a structure str
+     with three fields, a b and c.
+
+       (defstruct str (a b c))
+
+     This one is processed and produced a structure named str with one
+     field, a.  The fact that c is not a valid slot option keyword is not noticed.
+
+       (defstruct (str a b c))
+
+     This one does not produce a structure.  The interpreter and compiler
+     both give the error:
+
+       "The Defstruct option A cannot be used with 0 arguments"
+
+     In fact, A is not a valid defstruct option.
+
+
+   - Common Lisp:
+
+     Disassemble-file can write to the wrong directory. If one CD's (within
+     Lisp) to a directory and disassembles files, the .lap and .rtl files 
+     will be written in the directory current before the CD.
+
+
+   - Common Lisp:
+
+     [Amy: The documentation should be changed to describe setf-if-eq as returning
+      T if the operation was sucessful and NIL if it was not. The bug report
+      below describes the current behavior, a minor variation on the documenation]
+
+     Setf-if-eq, if sucessful,  currently returns the lowest-level object in PLACE 
+     operated on, not T. NIL is returned, however, if the operation was sucessful,
+     so the behavior should be acceptable.
